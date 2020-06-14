@@ -1,4 +1,4 @@
-from durak import Game
+from durak import Durak
 
 
 def card_2_str(card):
@@ -13,14 +13,15 @@ def cards_2_str(cards, enum=True):
     return ", ".join(cards)
 
 
-def render_game(durak: Game):
+def render_game(durak: Durak, my_index=None):
     print('-' * 100)
 
     print(f'Trump is [{durak.trump}], {len(durak.deck)} crd. in deck')
 
     for player in durak.players:
         marker = " <-- ATTACKS" if player.index == durak.attacker_index else ""
-        print(f"{player.index + 1}: {cards_2_str(player.cards)}{marker}")
+        me_marker = " (me) " if player.index == my_index else ""
+        print(f"{player.index + 1}: {cards_2_str(player.cards)}{marker}{me_marker}")
 
     if durak.winner:
         print(f'GAME OVER! Player {durak.winner} is the winner!')

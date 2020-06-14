@@ -1,18 +1,14 @@
-from durak import Game
+from serialization import DurakSerialized
 from render import render_game
 
 
-def main():
-    print('Help')
-    print('  1. a [card_no] -- attack with a card')
-    print('  2. d [card_no] [position] -- defend with a card at position')
-    print('  3. f -- finish the turn (if there are unbeaten cards then the defender takes them all')
-    print('  3. q -- quit')
+def local_game():
 
-    g = Game()
+    g = DurakSerialized()
 
     while not g.winner:
-        render_game(g)
+        render_game(g, my_index=0)
+
         print('-' * 100)
         choice = input('Your choice: ')
         parts = choice.lower().split(' ')
@@ -33,7 +29,7 @@ def main():
             elif command == 'd':
                 index = int(parts[1]) - 1
                 new_card = g.opponent_player().cards[index]
-                def_index = int(input('Which position to defend?')) - 1
+                def_index = int(input('Which position to defend? ')) - 1
                 old_card = list(g.field.keys())[def_index]
                 if not g.defend(old_card, new_card):
                     print('you cannot do that')
@@ -48,6 +44,18 @@ def main():
         if g.winner:
             print(f'GAME OVER! The winner is player #{g.winner + 1}')
             break
+
+
+def help():
+    print('Help')
+    print('  1. a [card_no] -- attack with a card')
+    print('  2. d [card_no] -- defend with a card at position')
+    print('  3. f -- finish the turn (if there are unbeaten cards then the defender takes them all')
+    print('  3. q -- quit')
+
+
+def main():
+    help()
 
 
 if __name__ == '__main__':

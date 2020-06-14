@@ -1,5 +1,4 @@
 import random
-import itertools
 
 SPADES = '♠'
 HEARTS = '♥'
@@ -17,17 +16,23 @@ DECK = [(nom, suit) for nom in NOMINALS for suit in [SPADES, HEARTS, DIAMS, CLUB
 
 
 class Player:
-    def __init__(self, index, deck):
+    def __init__(self, index, cards):
         self.index = index
-        self.cards = []
-        self.take_cards_from_deck(deck)
+        self.cards = list(map(tuple, cards))
 
     def take_cards_from_deck(self, deck: list):
         lack = max(0, CARDS_IN_HAND_MAX - len(self.cards))
         n = min(len(deck), lack)
-        self.cards += deck[:n]
+        self.add_cards(deck[:n])
         del deck[:n]
+        return self
+
+    def sort_hand(self):
         self.cards.sort(key=lambda c: (NAME_TO_VALUE[c[0]], c[1]))
+        return self
+
+    def add_cards(self, cards):
+        self.cards += list(cards)
 
     def __repr__(self):
         return f"Player{self.cards!r}"
@@ -40,7 +45,7 @@ def rotate(l, n):
     return l[n:] + l[:n]
 
 
-class Game:
+class Durak:
     NORMAL = 'normal'
     TOOK_CARDS = 'took_cards'
     GAME_OVER = 'game_over'
@@ -51,7 +56,8 @@ class Game:
         self.deck = list(DECK)
         random.shuffle(self.deck)
 
-        self.players = [Player(i, self.deck) for i in range(N_PLAYERS)]
+        self.players = [Player(i, []).take_cards_from_deck(self.deck).sort_hand()
+                        for i in range(N_PLAYERS)]
 
         self.trump = self.deck[0][1]
 
@@ -145,5 +151,5 @@ class Game:
 
     def _take_all_field(self):
         cards = self.attacking_cards() + self.defending_cards()
-        self.opponent_player().cards += cards
+        self.opponent_player().add_cards(cards).sort_hand()
         self.field = {}

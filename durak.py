@@ -33,12 +33,21 @@ class Player:
 
     def add_cards(self, cards):
         self.cards += list(cards)
+        self.sort_hand()
+        return self
 
     def __repr__(self):
         return f"Player{self.cards!r}"
 
     def take_card(self, card):
         self.cards.remove(card)
+
+    @property
+    def n_cards(self):
+        return len(self.cards)
+
+    def __getitem__(self, item):
+        return self.cards[item]
 
 
 def rotate(l, n):
@@ -56,7 +65,7 @@ class Durak:
         self.deck = list(DECK)
         random.shuffle(self.deck)
 
-        self.players = [Player(i, []).take_cards_from_deck(self.deck).sort_hand()
+        self.players = [Player(i, []).take_cards_from_deck(self.deck)
                         for i in range(N_PLAYERS)]
 
         self.trump = self.deck[0][1]
@@ -97,9 +106,11 @@ class Durak:
     def defending_cards(self):
         return list(filter(bool, self.field.values()))
 
+    @property
     def current_player(self):
         return self.players[self.attacker_index]
 
+    @property
     def opponent_player(self):
         return self.players[(self.attacker_index + 1) % N_PLAYERS]
 
@@ -108,7 +119,7 @@ class Durak:
 
         if not self.can_add_to_field(card):
             return False
-        cur, opp = self.current_player(), self.opponent_player()
+        cur, opp = self.current_player, self.opponent_player
         cur.take_card(card)
         self.field[card] = None
         return True
@@ -120,7 +131,7 @@ class Durak:
             return False
         if self.can_beat(attacking_card, defending_card):
             self.field[attacking_card] = defending_card
-            self.opponent_player().take_card(defending_card)
+            self.opponent_player.take_card(defending_card)
             return True
         return False
 
@@ -146,10 +157,10 @@ class Durak:
         if took_cards:
             return self.TOOK_CARDS
         else:
-            self.attacker_index = self.opponent_player().index
+            self.attacker_index = self.opponent_player.index
             return self.NORMAL
 
     def _take_all_field(self):
         cards = self.attacking_cards() + self.defending_cards()
-        self.opponent_player().add_cards(cards).sort_hand()
+        self.opponent_player.add_cards(cards)
         self.field = {}

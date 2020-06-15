@@ -1,61 +1,14 @@
 from serialization import DurakSerialized
-from render import render_game
-
-
-def local_game():
-
-    g = DurakSerialized()
-
-    while not g.winner:
-        render_game(g, my_index=0)
-
-        print('-' * 100)
-        choice = input('Your choice: ')
-        parts = choice.lower().split(' ')
-        if not parts:
-            break
-
-        command = parts[0]
-
-        try:
-            if command == 'f':
-                r = g.finish_turn()
-                print(f'Turn finished: {r}')
-            elif command == 'a':
-                index = int(parts[1]) - 1
-                card = g.current_player().cards[index]
-                if not g.attack(card):
-                    print('you cannot play this card!')
-            elif command == 'd':
-                index = int(parts[1]) - 1
-                new_card = g.opponent_player().cards[index]
-                def_index = int(input('Which position to defend? ')) - 1
-                old_card = list(g.field.keys())[def_index]
-                if not g.defend(old_card, new_card):
-                    print('you cannot do that')
-            elif command == 'q':
-                print('QUIT!')
-                break
-        except IndexError:
-            print('invalid card choice')
-        except ValueError:
-            print('enter a number after the command')
-
-        if g.winner:
-            print(f'GAME OVER! The winner is player #{g.winner + 1}')
-            break
-
-
-def help():
-    print('Help')
-    print('  1. a [card_no] -- attack with a card')
-    print('  2. d [card_no] -- defend with a card at position')
-    print('  3. f -- finish the turn (if there are unbeaten cards then the defender takes them all')
-    print('  3. q -- quit')
+from render import ConsoleRenderer
+from net_game import DurakNetGame
+from network import BroadcastNetworking
+from local_game import help
 
 
 def main():
     help()
+    d = DurakNetGame(ConsoleRenderer(), DurakSerialized(), BroadcastNetworking())
+    d.start()
 
 
 if __name__ == '__main__':

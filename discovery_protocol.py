@@ -1,15 +1,17 @@
 import random
 import network
+import logging
 
 
 class DiscoveryProtocol:
     A_DISCOVERY = 'discovery'
     A_STOP_SCAN = 'stop_scan'
 
-    def __init__(self, pid, port_no=37020):
+    def __init__(self, pid, port_no):
         assert pid
         self._my_pid = pid
         self._network = network.Networking(port_no, broadcast=True)
+        self._network.bind()
 
     def _send_action(self, action, data=None):
         """
@@ -34,7 +36,7 @@ class DiscoveryProtocol:
 
     def run(self):
         while True:
-            print('Scanning...')
+            logging.info('Scanning...')
             # рассылаем всем сообщение A_DISCOVERY
             self._send_action(self.A_DISCOVERY)
 
@@ -57,7 +59,8 @@ class DiscoveryProtocol:
 
 
 if __name__ == '__main__':
+    print('Testing the discovery protocol.')
     pid = random.getrandbits(64)
     print('pid =', pid)
-    info = DiscoveryProtocol(pid).run()
+    info = DiscoveryProtocol(pid, 37020).run()
     print("success: ", info)

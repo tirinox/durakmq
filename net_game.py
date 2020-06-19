@@ -4,24 +4,16 @@ from network import Networking
 
 
 class DurakNetGame:
-    def __init__(self, renderer, network: Networking):
+    def __init__(self, renderer, network_endpoint: Networking, my_id):
         self._renderer = renderer
-        self._network = network
         self._game_id = None
+        self._network = network_endpoint
         self._game = DurakSerialized()
-        self._my_id = self.rand_id()
+        self._my_id = my_id
 
     @classmethod
     def rand_id(cls):
         return random.getrandbits(64)
-
-    def _send_message(self, action, data=None):
-        data = data or {}
-        self._network.send_json_broadcast({
-            'action': action,
-            'pid': self._my_id,
-            **data
-        })
 
     def _new_game(self):
         print('No games were detected! Making a game.')
@@ -34,4 +26,5 @@ class DurakNetGame:
 
     def start(self):
         print(f'My ID is #{self._my_id}')
+
 

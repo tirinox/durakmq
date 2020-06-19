@@ -1,6 +1,7 @@
 import socket
 import json
 import time
+import logging
 
 
 class Networking:
@@ -21,7 +22,7 @@ class Networking:
             data, addr = self._socket.recvfrom(self.BUFFER_SIZE)
             return json.loads(data.decode('utf-8', errors='ignore'), encoding='utf-8'), addr
         except json.JSONDecodeError:
-            print('reader: JSON error!')
+            logging.error(f'JSONDecodeError!')
         except socket.timeout:
             pass
         except KeyboardInterrupt:
@@ -36,11 +37,12 @@ class Networking:
                 return data, addr
         return None, None
 
-    def __init__(self, port_no=37020, broadcast=False):
-        self.port_no = port_no
+    def bind(self, to=""):
+        self._socket.bind((to, self.port_no))
 
+    def __init__(self, port_no, broadcast=False):
+        self.port_no = port_no
         self._socket = self.get_socket(broadcast=broadcast)
-        self._socket.bind(("", self.port_no))
 
     def send_json(self, j, to):
         data = bytes(json.dumps(j), 'utf-8')
@@ -50,5 +52,5 @@ class Networking:
         return self.send_json(j, "<broadcast>")
 
     def __del__(self):
-        print('closing socket')
+        logging.info('Closing socket')
         self._socket.close()

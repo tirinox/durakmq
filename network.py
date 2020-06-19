@@ -50,4 +50,5 @@ class Networking:
         return self.send_json(j, "<broadcast>")
 
     def __del__(self):
+        print('closing socket')
         self._socket.close()

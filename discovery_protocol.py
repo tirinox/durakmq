@@ -8,28 +8,52 @@ class DiscoveryProtocol:
 
     def __init__(self, pid, port_no=37020):
         assert pid
-        self._pid = pid
+        self._my_pid = pid
         self._network = network.Networking(port_no, broadcast=True)
 
-    def _send_action(self, action):
-        self._network.send_json_broadcast({'action': action, 'pid': self._pid})
+    def _send_action(self, action, data=None):
+        """
+        Форматирует JSON для обмена командами
+        :param action: имя команды
+        :param data: доп. данные, если надо
+        :return:
+        """
+        data = data or {}
+        self._network.send_json_broadcast({'action': action, 'sender': self._my_pid, **data})
 
     def _is_message_for_me(self, d):
-        return d and d.get('action') in [self.A_DISCOVERY, self.A_STOP_SCAN] and d.get('pid') != self._pid
+        """
+        Проверяет, относится ли принятый пакет к нашему протоколу обнаружения
+        (1) должен быть определнный action
+        (2) отправитель sender должен быть не я, а кто-то другой, потому что
+            мы также получаем собственные пакеты)
+        :param d: словарь данных
+        :return:
+        """
+        return d and d.get('action') in [self.A_DISCOVERY, self.A_STOP_SCAN] and d.get('sender') != self._my_pid
 
     def run(self):
         while True:
             print('Scanning...')
+            # рассылаем всем сообщение A_DISCOVERY
             self._send_action(self.A_DISCOVERY)
+
+            # ждем приемлемого ответа не более 5 секунд, игнорируя таймауты и неревалентные пакеты
             data, addr = self._network.recv_json_until(self._is_message_for_me, timeout=5.0)
 
+            # если пришло что-то наше
             if data:
-                action = data['action']
+                action, sender = data['action'], data['sender']
+                # кто-то нам отправил A_DISCOVERY
                 if action == self.A_DISCOVERY:
-                    self._send_action(self.A_STOP_SCAN)
+                    # отсылаем ему сообщение остановить сканирование A_STOP_SCAN, указав его PID
+                    self._send_action(self.A_STOP_SCAN, {'to_pid': sender})
+                    # todo: что делать, если оно не дошло? тот пир продолжит сканировать дальше...
                 elif action == self.A_STOP_SCAN:
-                    pass
-                return addr, data['pid']
+                    # если получили сообщение остновить сканирование, нужно выяснить нам ли оно предназначено
+                    if data['to_pid'] != self._my_pid:
+                        continue  # это не нам; игнорировать!
+                return addr, sender
 
 
 if __name__ == '__main__':

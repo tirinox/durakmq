@@ -1,25 +1,37 @@
 from serialization import DurakSerialized
 import random
-from network import BroadcastNetworking
-import time
+from network import Networking
 
 
 class DurakNetGame:
-    def __init__(self, renderer, game_cls: DurakSerialized, netwk: BroadcastNetworking):
+    def __init__(self, renderer, network: Networking):
         self._renderer = renderer
-        self._game_cls = game_cls
-        self._netwk = netwk
-        self._my_id = random.getrandbits(64)
+        self._network = network
+        self._game_id = None
+        self._game = DurakSerialized()
+        self._my_id = self.rand_id()
 
-    def _send_beackon(self):
-        self._netwk.send_json({
-            'action': 'join',
-            'pid': self._my_id
+    @classmethod
+    def rand_id(cls):
+        return random.getrandbits(64)
+
+    def _send_message(self, action, data=None):
+        data = data or {}
+        self._network.send_json_broadcast({
+            'action': action,
+            'pid': self._my_id,
+            **data
         })
 
-    def start(self):
-        print('Scanning the network...')
-        self._send_beackon()
-        time.sleep(10)
+    def _new_game(self):
+        print('No games were detected! Making a game.')
+        self._game = DurakSerialized()
+        self._game.game_id = self.rand_id()
 
+    def _join_game(self, data):
+        self._opp_id = data['pid']
+        self._game = DurakSerialized(data['state'])
+
+    def start(self):
+        print(f'My ID is #{self._my_id}')
 

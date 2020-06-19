@@ -13,6 +13,7 @@ def serialize_recursive(o):
 class DurakSerialized(Durak):
     def __init__(self, j=None):
         super().__init__()
+        self.game_id = None
         if j is not None:
             for name in self.__dict__:
                 if name in j:

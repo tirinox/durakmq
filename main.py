@@ -7,7 +7,7 @@ from local_game import help
 
 def main():
     help()
-    d = DurakNetGame(ConsoleRenderer(), DurakSerialized(), BroadcastNetworking())
+    d = DurakNetGame(ConsoleRenderer(), BroadcastNetworking())
     d.start()
 
 

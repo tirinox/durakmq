@@ -10,7 +10,6 @@ def help():
     print('  3. q -- quit')
 
 
-
 def local_game():
     g = Durak()
     renderer = ConsoleRenderer()

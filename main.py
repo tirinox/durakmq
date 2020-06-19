@@ -3,12 +3,13 @@ from net_game import DurakNetGame
 from network import Networking
 from discovery_protocol import DiscoveryProtocol
 from local_game import help
+from util import rand_id
 
 PORT_NO = 37020
 
 
 def main():
-    my_id = DurakNetGame.rand_id()
+    my_id = rand_id()
 
     discovery = DiscoveryProtocol(my_id, port_no=PORT_NO)
     print('Scanning the network...')
@@ -16,10 +17,12 @@ def main():
     del discovery
 
     endpoint = Networking(PORT_NO, broadcast=False)
-    endpoint.bind(addr)
+    endpoint.bind("")
 
     renderer = ConsoleRenderer()
-    game = DurakNetGame(renderer, endpoint, remote_pid)
+    game = DurakNetGame(renderer, endpoint, my_id, remote_pid)
+    game.remote_addr = addr
+
     help()
     game.start()
 

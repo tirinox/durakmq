@@ -2,6 +2,7 @@ import socket
 import json
 import time
 import logging
+import threading
 
 
 class Networking:
@@ -37,11 +38,21 @@ class Networking:
                 return data, addr
         return None, None
 
+    def run_reader_thread(self, callback):
+        def reader_job():
+            while True:
+                data, _ = self.recv_json()
+                if data:
+                    callback(data)
+        threading.Thread(target=reader_job, daemon=True).start()
+
     def bind(self, to=""):
         self._socket.bind((to, self.port_no))
+        self._remote_addr = to
 
     def __init__(self, port_no, broadcast=False):
         self.port_no = port_no
+        self._remote_addr = None
         self._socket = self.get_socket(broadcast=broadcast)
 
     def send_json(self, j, to):

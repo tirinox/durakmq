@@ -2,17 +2,11 @@ from render import ConsoleRenderer
 from durak import Durak
 
 
-def help():
-    print('Help')
-    print('  1. a [card_no] -- attack with a card')
-    print('  2. d [card_no] -- defend with a card at position')
-    print('  3. f -- finish the turn (if there are unbeaten cards then the defender takes them all')
-    print('  3. q -- quit')
-
-
 def local_game():
     g = Durak()
     renderer = ConsoleRenderer()
+
+    renderer.help()
 
     while not g.winner:
         renderer.render_game(g, my_index=0)
@@ -55,5 +49,4 @@ def local_game():
 
 
 if __name__ == '__main__':
-    help()
     local_game()

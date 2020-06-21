@@ -1,29 +1,22 @@
 from render import ConsoleRenderer
 from net_game import DurakNetGame
-from network import Networking
 from discovery_protocol import DiscoveryProtocol
-from local_game import help
 from util import rand_id
 
 PORT_NO = 37020
+PORT_NO_AUX = 37021
 
 
 def main():
-    my_id = rand_id()
+    my_pid = rand_id()
 
-    discovery = DiscoveryProtocol(my_id, port_no=PORT_NO)
+    discovery = DiscoveryProtocol(my_pid, port_no=PORT_NO)
     print('Scanning the network...')
-    (addr, _port), remote_pid = discovery.run()
+    (remote_addr, _port), remote_pid = discovery.run()
     del discovery
 
-    endpoint = Networking(PORT_NO, broadcast=False)
-    endpoint.bind("")
-
     renderer = ConsoleRenderer()
-    game = DurakNetGame(renderer, endpoint, my_id, remote_pid)
-    game.remote_addr = addr
-
-    help()
+    game = DurakNetGame(renderer, my_pid, remote_pid, remote_addr, [PORT_NO, PORT_NO_AUX])
     game.start()
 
 

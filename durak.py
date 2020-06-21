@@ -138,6 +138,9 @@ class Durak:
     def attack_succeed(self):
         return any(def_card is None for _, def_card in self.field.items())
 
+    def defend_variants(self, card):
+        return [i for i, att_card in enumerate(self.field.keys()) if self.field[card] is None and self.can_beat(att_card, card)]
+
     def finish_turn(self):
         assert not self.winner
 

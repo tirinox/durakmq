@@ -12,7 +12,7 @@ def local_game():
         renderer.render_game(g, my_index=0)
 
         renderer.sep()
-        choice = input('Your choice: ')
+        choice = input('Ваш выбор: ')
         parts = choice.lower().split(' ')
         if not parts:
             break
@@ -22,19 +22,26 @@ def local_game():
         try:
             if command == 'f':
                 r = g.finish_turn()
-                print(f'Turn finished: {r}')
+                print(f'Ход окончен: {r}')
             elif command == 'a':
                 index = int(parts[1]) - 1
-                card = g.current_player.cards[index]
+                card = g.current_player[index]
                 if not g.attack(card):
-                    print('you cannot play this card!')
+                    print('Вы не можете ходить с этой карты!')
             elif command == 'd':
                 index = int(parts[1]) - 1
-                new_card = g.opponent_player.cards[index]
-                def_index = int(input('Which position to defend? ')) - 1
+                new_card = g.opponent_player[index]
+
+                variants = g.defend_variants(new_card)
+
+                if len(variants) == 1:
+                    def_index = variants[0]
+                else:
+                    def_index = int(input('Какую позицию отбить? ')) - 1
+
                 old_card = list(g.field.keys())[def_index]
                 if not g.defend(old_card, new_card):
-                    print('you cannot do that')
+                    print('Не можете так отбиться')
             elif command == 'q':
                 print('QUIT!')
                 break

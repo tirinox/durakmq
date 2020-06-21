@@ -1,9 +1,13 @@
 from render import ConsoleRenderer
 from durak import Durak
+import random
 
 
 def local_game():
-    g = Durak()
+
+    rng = random.Random(42)
+
+    g = Durak(rng=rng)
     renderer = ConsoleRenderer()
 
     renderer.help()
@@ -37,7 +41,7 @@ def local_game():
                 if len(variants) == 1:
                     def_index = variants[0]
                 else:
-                    def_index = int(input('Какую позицию отбить? ')) - 1
+                    def_index = int(input(f'Какую позицию отбить {new_card}? ')) - 1
 
                 old_card = list(g.field.keys())[def_index]
                 if not g.defend(old_card, new_card):

@@ -59,11 +59,13 @@ class Durak:
     TOOK_CARDS = 'took_cards'
     GAME_OVER = 'game_over'
 
-    def __init__(self):
+    def __init__(self, rng: random.Random = None):
         self.attacker_index = 0
 
+        self.rng = rng or random.Random()
+
         self.deck = list(DECK)
-        random.shuffle(self.deck)
+        self.rng.shuffle(self.deck)
 
         self.players = [Player(i, []).take_cards_from_deck(self.deck)
                         for i in range(N_PLAYERS)]
@@ -139,7 +141,8 @@ class Durak:
         return any(def_card is None for _, def_card in self.field.items())
 
     def defend_variants(self, card):
-        return [i for i, att_card in enumerate(self.field.keys()) if self.field[card] is None and self.can_beat(att_card, card)]
+        unbeaten_cards = [c for c in self.field.keys() if self.field[c] is None]
+        return [i for i, att_card in enumerate(unbeaten_cards) if self.can_beat(att_card, card)]
 
     def finish_turn(self):
         assert not self.winner

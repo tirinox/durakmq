@@ -37,10 +37,10 @@ class ConsoleRenderer(GameRenderer):
 
         if durak.field:
             print()
-            attacking_cards = self.cards_2_str(durak.attacking_cards(), enum=False)
-            print(f'Ход: {attacking_cards}')
-            defending_cards = self.cards_2_str(durak.defending_cards(), enum=False)
-            print(f'Побил: {defending_cards}')
+
+            pairs = list(durak.field.items())
+            for i, (ac, dc) in enumerate(pairs, start=1):
+                print(f'{i}. Ходит: {self.card_2_str(ac)} - отбиться: {self.card_2_str(dc)}')
 
     def sep(self):
         print('-' * 100)

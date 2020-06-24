@@ -91,6 +91,10 @@ class Durak:
     def can_beat(self, card1, card2):
         nom1, suit1 = card1
         nom2, suit2 = card2
+
+        nom1 = NAME_TO_VALUE[nom1]
+        nom2 = NAME_TO_VALUE[nom2]
+
         if suit2 == self.trump:
             return suit1 != self.trump or nom2 > nom1
         elif suit1 == suit2:
@@ -108,11 +112,17 @@ class Durak:
 
         return False
 
+    @property
     def attacking_cards(self):
         return list(filter(bool, self.field.keys()))
 
+    @property
     def defending_cards(self):
         return list(filter(bool, self.field.values()))
+
+    @property
+    def any_unbeated_card(self):
+        return any(c is None for c in self.defending_cards)
 
     @property
     def current_player(self):
@@ -173,6 +183,6 @@ class Durak:
             return self.NORMAL
 
     def _take_all_field(self):
-        cards = self.attacking_cards() + self.defending_cards()
+        cards = self.attacking_cards + self.defending_cards
         self.opponent_player.add_cards(cards)
         self.field = {}

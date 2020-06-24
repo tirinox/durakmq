@@ -69,8 +69,19 @@ class DurakNetGame:
         index = int(parts[1]) - 1
         new_card = g.opponent_player.cards[index]
         if g.field:
-            max_pos = len(g.field)
-            def_index = int(input(f'Какую позицию защищать (1-{max_pos})')) - 1
+            variants = g.defend_variants(new_card)
+
+            print(f'variants {variants} - {new_card}')
+
+            if len(variants) == 1:
+                def_index = variants[0]
+            elif len(variants) >= 2:
+                max_pos = len(g.field)
+                def_index = int(input(f'Какую позицию отбить {new_card} (1-{max_pos})? ')) - 1
+            else:
+                print('Вам придется взять карты!')
+                return False
+
             old_card = list(g.field.keys())[def_index]
             if not g.defend(old_card, new_card):
                 print('ОШИБКА! Нельзя так отбиться!')

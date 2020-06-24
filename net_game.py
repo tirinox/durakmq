@@ -33,6 +33,11 @@ class DurakNetGame:
             'state': self._game.serialized()
         }, self._remote_addr)
 
+    def _send_quit(self):
+        self._sender.send_json({
+            'action': 'quit'
+        }, self._remote_addr)
+
     def start(self):
         print(f'Мой ID #{self._my_id}, мой индекс {self._my_index}')
         print(f'Удаленный адрес {self._remote_addr}')
@@ -40,10 +45,14 @@ class DurakNetGame:
         self._renderer.help()
 
         def reader(data):
-            if data['action'] == 'state':
+            action = data['action']
+            if action == 'state':
                 self._game = DurakSerialized(data['state'])
                 print('Пришел ход от соперника!')
                 self._renderer.render_game(self._game, self._my_index)
+            elif action == 'quit':
+                print('Соперник вышел!')
+                exit(0)
 
         self._receiver.run_reader_thread(reader)
 
@@ -64,45 +73,60 @@ class DurakNetGame:
 
             command = parts[0]
 
+            good_move = False  # флаг, удачный ли был ход после ввода команды
+
             g = self._game
 
             try:
                 if command == 'f':
-                    r = g.finish_turn()
-                    if r == g.GAME_OVER:
-                        r_str = 'игра окончена!'
-                    elif r == g.TOOK_CARDS:
-                        r_str = 'взяли карты.'
+                    if g.field:
+                        r = g.finish_turn()
+                        if r == g.GAME_OVER:
+                            r_str = 'игра окончена!'
+                        elif r == g.TOOK_CARDS:
+                            r_str = 'взяли карты.'
+                        else:
+                            r_str = 'бито.'
+                        print(f'Ход завершен: {r_str}')
+                        good_move = True
                     else:
-                        r_str = 'бито.'
-                    print(f'Ход завершен: {r_str}')
-                elif command == 'a':
+                        print('Пока ход не сделал, чтобы его завершить!')
+                elif command == 'a' and g.attacker_index == self._my_index:
                     index = int(parts[1]) - 1
                     card = g.current_player.cards[index]
                     if not g.attack(card):
                         print('ОШИБКА! Вы не можете ходить этой картой!')
-                elif command == 'd':
+                    else:
+                        good_move = True
+                elif command == 'd' and g.attacker_index != self._my_index:
                     index = int(parts[1]) - 1
                     new_card = g.opponent_player.cards[index]
-                    max_pos = len(g.field) + 1
-                    def_index = int(input(f'Какую позицию защищать (1-{max_pos})')) - 1
-                    old_card = list(g.field.keys())[def_index]
-                    if not g.defend(old_card, new_card):
-                        print('ОШИБКА! Нельзя так отбиться!')
+                    if g.field:
+                        max_pos = len(g.field)
+                        def_index = int(input(f'Какую позицию защищать (1-{max_pos})')) - 1
+                        old_card = list(g.field.keys())[def_index]
+                        if not g.defend(old_card, new_card):
+                            print('ОШИБКА! Нельзя так отбиться!')
+                        else:
+                            good_move = True
+                    else:
+                        print('Пока нечего отбивать!')
                 elif command == 'q':
                     print('Вы вышли из игры!')
+                    self._send_quit()
                     break
                 else:
                     print('Неизвестная команда.')
-                    continue
             except IndexError:
                 print('ОШИБКА! Неверный выбор карты')
             except ValueError:
                 print('Введите число через пробел после команды')
 
-            self._send_game_state()
+            if good_move:
+                self._send_game_state()
+                self._renderer.render_game(g, self._my_index)
 
-            if g.winner:
-                outcome = 'Вы победили!' if g.winner == self._my_index else 'Вы проиграли!'
-                print(f'Игра окончена! {outcome}')
-                break
+                if g.winner:
+                    outcome = 'Вы победили!' if g.winner == self._my_index else 'Вы проиграли!'
+                    print(f'Игра окончена! {outcome}')
+                    break

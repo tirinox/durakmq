@@ -4,8 +4,8 @@ import random
 
 
 def local_game():
-
-    rng = random.Random(42)
+    # rng = random.Random(42)  # игра с фиксированным рандомом (для отладки)
+    rng = random.Random()  # случайная игра
 
     g = Durak(rng=rng)
     renderer = ConsoleRenderer()
@@ -50,9 +50,9 @@ def local_game():
                 print('QUIT!')
                 break
         except IndexError:
-            print('invalid card choice')
+            print('Неправильный выбор карты')
         except ValueError:
-            print('enter a number after the command')
+            print('Введите число через пробел после команды')
 
         if g.winner:
             print(f'GAME OVER! The winner is player #{g.winner + 1}')

@@ -37,9 +37,6 @@ class DurakNetGame:
         print(f'Мой ID #{self._my_id}, мой индекс {self._my_index}')
         print(f'Удаленный адрес {self._remote_addr}')
 
-        # while self._game.winner is None:
-        #     self._renderer.render_game(self._my_index)
-        #     self._renderer.sep()
         self._renderer.help()
 
         def reader(data):
@@ -53,7 +50,6 @@ class DurakNetGame:
         if self._my_index == 0:
             # игрок с индексом 0 создает игру!
             self._game = DurakSerialized()
-            self._game.game_id = rand_id()
 
             # и отсылает ее сопернику
             self._send_game_state()
@@ -96,6 +92,9 @@ class DurakNetGame:
                 elif command == 'q':
                     print('Вы вышли из игры!')
                     break
+                else:
+                    print('Неизвестная команда.')
+                    continue
             except IndexError:
                 print('ОШИБКА! Неверный выбор карты')
             except ValueError:
@@ -107,5 +106,3 @@ class DurakNetGame:
                 outcome = 'Вы победили!' if g.winner == self._my_index else 'Вы проиграли!'
                 print(f'Игра окончена! {outcome}')
                 break
-
-

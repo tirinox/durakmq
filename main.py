@@ -11,7 +11,7 @@ def main():
     my_pid = rand_id()
 
     discovery = DiscoveryProtocol(my_pid, port_no=PORT_NO)
-    print('Scanning the network...')
+    print('Сканирую локальную сеть...')
     (remote_addr, _port), remote_pid = discovery.run()
     del discovery
 

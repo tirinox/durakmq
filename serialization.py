@@ -1,25 +1,30 @@
 from durak import Durak, Player
 
 
-def serialize_recursive(o):
-    if hasattr(o, '__dict__'):
-        return {k: serialize_recursive(v) for k, v in o.__dict__.items()}
-    elif isinstance(o, (tuple, list)):
-        return [serialize_recursive(v) for v in o]
-    else:
-        return o
-
-
 class DurakSerialized(Durak):
     def __init__(self, j=None):
-        super().__init__()
-        self.game_id = None
-        if j is not None:
-            for name in self.__dict__:
-                if name in j:
-                    setattr(self, name, j[name])
-            self.players = [Player(p['index'], p['cards']) if isinstance(p, dict) else p for p in self.players]
-            self.deck = list(map(tuple, self.deck))
+        if j is None:
+            super().__init__()
+        else:
+            self.trump = j["trump"]
+            self.attacker_index = j["attacker_index"]
+            self.players = [Player(p['index'], p['cards']) for p in j["players"]]
+            self.deck = list(map(tuple, j["deck"]))
+            self.winner = j["winner"]
+            self.field = {tuple(ac): tuple(dc) if dc is not None else None for ac, dc in j["field"]}
 
     def serialized(self):
-        return serialize_recursive(self)
+        j = {
+            "trump": self.trump,
+            "attacker_index": self.attacker_index,
+            "deck": self.deck,
+            "winner": self.winner,
+            "field": list(self.field.items()),
+            "players": [
+                {
+                    "index": p.index,
+                    "cards": p.cards
+                } for p in self.players
+            ]
+        }
+        return j

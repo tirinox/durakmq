@@ -17,6 +17,7 @@ def local_game():
 
         renderer.sep()
         choice = input('Ваш выбор: ')
+        # разбиваем на части: команда - пробел - номер карты
         parts = choice.lower().split(' ')
         if not parts:
             break
@@ -36,6 +37,7 @@ def local_game():
                 index = int(parts[1]) - 1
                 new_card = g.opponent_player[index]
 
+                # варианты защиты выбранной картой
                 variants = g.defend_variants(new_card)
 
                 if len(variants) == 1:
@@ -55,7 +57,7 @@ def local_game():
             print('Введите число через пробел после команды')
 
         if g.winner:
-            print(f'GAME OVER! The winner is player #{g.winner + 1}')
+            print(f'Игра окончена, победитель игрок: #{g.winner + 1}')
             break
 
 

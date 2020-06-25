@@ -26,7 +26,7 @@ class ConsoleRenderer(GameRenderer):
         return ", ".join(cards)
 
     def render_game(self, durak: Durak, my_index=None):
-        print('-' * 100)
+        self.sep()
 
         print(f'Козырь – [{durak.trump}], {len(durak.deck)} карт в колоде осталось.')
 
@@ -43,7 +43,7 @@ class ConsoleRenderer(GameRenderer):
                 print(f'{i}. Ходит: {self.card_2_str(ac)} - отбиться: {self.card_2_str(dc)}')
 
     def sep(self):
-        print('-' * 100)
+        print('-' * 80)
 
     def help(self):
         self.sep()

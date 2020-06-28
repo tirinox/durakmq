@@ -71,6 +71,11 @@ class Networking:
         threading.Thread(target=reader_job, daemon=True).start()
 
     def bind(self, to=""):
+        """
+        Привязаться к порту, то есть начать слушать с него сообщения
+        После bind можно вызывать recv_json
+        :param to: интерфейс ("" - любой)
+        """
         self._socket.bind((to, self.port_no))
         self._remote_addr = to
 
@@ -80,10 +85,20 @@ class Networking:
         self._socket = self.get_socket(broadcast=broadcast)
 
     def send_json(self, j, to):
+        """
+        Отправляет JSON
+        :param j: данные
+        :param to: адрес кому отправить
+        """
         data = bytes(json.dumps(j), 'utf-8')
         return self._socket.sendto(data, (to, self.port_no))
 
     def send_json_broadcast(self, j):
+        """
+        Оправляет JSON данные широковещательно
+        :param j: данные
+        :return:
+        """
         return self.send_json(j, "<broadcast>")
 
     def __del__(self):

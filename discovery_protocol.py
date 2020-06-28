@@ -52,7 +52,7 @@ class DiscoveryProtocol:
                     self._send_action(self.A_STOP_SCAN, {'to_pid': sender})
                     # todo: что делать, если оно не дошло? тот пир продолжит сканировать дальше...
                 elif action == self.A_STOP_SCAN:
-                    # если получили сообщение остновить сканирование, нужно выяснить нам ли оно предназначено
+                    # если получили сообщение остановить сканирование, нужно выяснить нам ли оно предназначено
                     if data['to_pid'] != self._my_pid:
                         continue  # это не нам; игнорировать!
                 return addr, sender

@@ -33,7 +33,7 @@ class Networking:
         try:
             # получить датаграмму и адрес из сокета
             data, addr = self._socket.recvfrom(self.BUFFER_SIZE)
-            # декодируем в юникод и загражаем из JSON
+            # декодируем в юникод и загружаем из JSON
             return json.loads(data.decode('utf-8', errors='ignore'), encoding='utf-8'), addr
         except json.JSONDecodeError:
             logging.error(f'JSONDecodeError!')
@@ -47,7 +47,7 @@ class Networking:
         """
         Несколько раз пытается получить JSON в течение timeout секунд, пока на полученных данных
         функция predicate не вернет True
-        :param predicate: функция, чтобы проверять даннные
+        :param predicate: функция, чтобы проверять данные
         :param timeout: тайм аут
         :return:
         """
@@ -77,11 +77,9 @@ class Networking:
         :param to: интерфейс ("" - любой)
         """
         self._socket.bind((to, self.port_no))
-        self._remote_addr = to
 
     def __init__(self, port_no, broadcast=False):
         self.port_no = port_no
-        self._remote_addr = None
         self._socket = self.get_socket(broadcast=broadcast)
 
     def send_json(self, j, to):

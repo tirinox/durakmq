@@ -6,12 +6,19 @@ import threading
 
 
 class Networking:
-    BUFFER_SIZE = 4096
-    TIME_OUT = 1.0  # sec
+    BUFFER_SIZE = 4096  # размер буфера для примем сообщений
+    TIME_OUT = 1.0  # время таймаута при ожидании данных в сокет
 
     @classmethod
     def get_socket(cls, broadcast=False, timeout=TIME_OUT):
+        """
+        Создает UDP сокет
+        :param broadcast: широковещателньый или нет
+        :param timeout: тайм аут
+        :return: сокет
+        """
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
+        # чтобы на одной машине можно было слушать тотже порт
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         if broadcast:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
@@ -19,18 +26,31 @@ class Networking:
         return sock
 
     def recv_json(self):
+        """
+        Получить JSON из сокета
+        :return: dict или list
+        """
         try:
+            # получить датаграмму и адрес из сокета
             data, addr = self._socket.recvfrom(self.BUFFER_SIZE)
+            # декодируем в юникод и загражаем из JSON
             return json.loads(data.decode('utf-8', errors='ignore'), encoding='utf-8'), addr
         except json.JSONDecodeError:
             logging.error(f'JSONDecodeError!')
         except socket.timeout:
-            pass
+            pass  # ничего не пришло
         except KeyboardInterrupt:
             raise
         return None, None
 
     def recv_json_until(self, predicate, timeout):
+        """
+        Несколько раз пытается получить JSON в течение timeout секунд, пока на полученных данных
+        функция predicate не вернет True
+        :param predicate: функция, чтобы проверять даннные
+        :param timeout: тайм аут
+        :return:
+        """
         t0 = time.monotonic()
         while time.monotonic() < t0 + timeout:
             data, addr = self.recv_json()
@@ -39,6 +59,10 @@ class Networking:
         return None, None
 
     def run_reader_thread(self, callback):
+        """
+        Запускает отдельный поток, чтобы получать данные из сокета
+        :param callback: функция, которая вызывается, если получены данные
+        """
         def reader_job():
             while True:
                 data, _ = self.recv_json()

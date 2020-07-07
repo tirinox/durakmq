@@ -42,18 +42,25 @@ class DurakNetGame:
             'action': 'quit'
         }, self._remote_addr)
 
-    def _handle_finish(self):
+    def _handle_finish(self, my_turn):
         g = self._game
         if g.field:
-            r = g.finish_turn()
-            if r == g.GAME_OVER:
-                r_str = 'игра окончена!'
-            elif r == g.TOOK_CARDS:
-                r_str = 'взяли карты.'
+            if my_turn and g.any_unbeaten_cards:
+                print('Не можете вынудить соперника взять карты!')
+                return False
+            elif not my_turn and not g.any_unbeaten_cards:
+                print('Только атакующий может сказать "Бито!"')
+                return False
             else:
-                r_str = 'бито.'
-            print(f'Ход завершен: {r_str}')
-            return True
+                r = g.finish_turn()
+                if r == g.GAME_OVER:
+                    r_str = 'игра окончена!'
+                elif r == g.TOOK_CARDS:
+                    r_str = 'взяли карты.'
+                else:
+                    r_str = 'бито.'
+                print(f'Ход завершен: {r_str}')
+                return True
         else:
             print('Пока ход не сделал, чтобы его завершить!')
             return False
@@ -125,12 +132,16 @@ class DurakNetGame:
 
             good_move = False  # флаг, удачный ли был ход после ввода команды
             g = self._game
+
+            # мой ли ход атаковать?
+            is_my_turn = g.attacker_index == self._my_index
+
             try:
                 if command == 'f':
-                    good_move = self._handle_finish()
-                elif command == 'a' and g.attacker_index == self._my_index:
+                    good_move = self._handle_finish(is_my_turn)
+                elif command == 'a' and is_my_turn:
                     good_move = self._handle_attack(parts)
-                elif command == 'd' and g.attacker_index != self._my_index:
+                elif command == 'd' and not is_my_turn:
                     good_move = self._handle_defence(parts)
                 elif command == 'q':
                     print('Вы вышли из игры!')

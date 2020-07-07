@@ -195,14 +195,14 @@ class Durak:
     GAME_OVER = 'game_over'
 
     @property
-    def attack_succeed(self):
+    def any_unbeaten_cards(self):
         return any(def_card is None for def_card in self.field.values())
 
     def finish_turn(self):
         assert not self.winner
 
         took_cards = False
-        if self.attack_succeed:
+        if self.any_unbeaten_cards:
             # забрать все карты, если игрок не отбился в момент завершения хода
             self._take_all_field()
             took_cards = True

@@ -144,10 +144,12 @@ class DurakNetGame:
                 print('Введите число через пробел после команды')
 
             if good_move:
+                # если ход удачный, пошлем копию состояния игры
                 self._send_game_state()
                 self._renderer.render_game(g, self._my_index)
 
-                if g.winner:
+                # проверка на окончание игры (если есть победитель, в g.winner - этог индекс)
+                if g.winner is not None:
                     outcome = 'Вы победили!' if g.winner == self._my_index else 'Вы проиграли!'
                     print(f'Игра окончена! {outcome}')
                     break

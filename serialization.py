@@ -6,6 +6,7 @@ class DurakSerialized(Durak):
         if j is None:
             super().__init__()
         else:
+            # десериализация
             self.trump = j["trump"]
             self.attacker_index = j["attacker_index"]
             self.players = [Player(p['index'], p['cards']) for p in j["players"]]
@@ -14,6 +15,7 @@ class DurakSerialized(Durak):
             self.field = {tuple(ac): tuple(dc) if dc is not None else None for ac, dc in j["field"]}
 
     def serialized(self):
+        # сериализация
         j = {
             "trump": self.trump,
             "attacker_index": self.attacker_index,

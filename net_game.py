@@ -1,31 +1,35 @@
 from render import GameRenderer
 from serialization import DurakSerialized
 from network import Networking
-from util import rand_id
 
 
 class DurakNetGame:
     def __init__(self, renderer: GameRenderer, my_id, remote_id, remote_addr, ports):
         self._renderer = renderer
 
-        self._game = None
+        self._game = DurakSerialized()  # геймплей
 
         self._my_id = int(my_id)
         self._remote_id = int(remote_id)
         self._remote_addr = remote_addr
 
+        # проверка на адекватность ID
         assert self._my_id != 0 and self._remote_id != 0 and self._my_id != self._remote_id
 
+        # кто ходит первый выбираем просто сравнивая ID (они же случайные)!
         me_first = self._my_id < self._remote_id
+        # мой индекс 0 если я первый, и 1 иначе. у соперника наоборот
         self._my_index = 0 if me_first else 1
 
+        # две сетевых примочки на разны портах
         network1 = Networking(port_no=ports[0])
         network2 = Networking(port_no=ports[1])
 
+        # кто слушает какой порт выбираем также на базе сравнения ID как чисел
         self._receiver = network1 if me_first else network2
-        self._sender = network2 if me_first else network1
-
         self._receiver.bind("")
+
+        self._sender = network2 if me_first else network1
 
     def _send_game_state(self):
         self._sender.send_json({

@@ -106,25 +106,14 @@ class DurakNetGame:
     def _on_remote_message(self, data):
         action = data['action']
         if action == 'state':
-            self._game = DurakSerialized(data['state'])
+            self._game = DurakSerialized(data['state'])  # обновить остояние
             print('Пришел ход от соперника!')
             self._renderer.render_game(self._game, self._my_index)
         elif action == 'quit':
             print('Соперник вышел!')
             exit(0)
 
-    def start(self):
-        print(f'Мой ID #{self._my_id}, мой индекс {self._my_index}')
-        print(f'Удаленный адрес {self._remote_addr}')
-
-        self._renderer.help()
-
-        self._receiver.run_reader_thread(self._on_remote_message)
-
-        if self._my_index == 0:
-            # игрок с индексом 0 создает игру!
-            self._new_game()
-
+    def _game_loop(self):
         while True:
             q = input('Ваш ход (q = выход)? ')
 
@@ -135,9 +124,7 @@ class DurakNetGame:
             command = parts[0]
 
             good_move = False  # флаг, удачный ли был ход после ввода команды
-
             g = self._game
-
             try:
                 if command == 'f':
                     good_move = self._handle_finish()
@@ -164,3 +151,15 @@ class DurakNetGame:
                     outcome = 'Вы победили!' if g.winner == self._my_index else 'Вы проиграли!'
                     print(f'Игра окончена! {outcome}')
                     break
+
+    def start(self):
+        print(f'Мой ID #{self._my_id}, мой индекс {self._my_index}')
+        print(f'Удаленный адрес {self._remote_addr}')
+        self._renderer.help()
+
+        if self._my_index == 0:
+            # игрок с индексом 0 создает игру!
+            self._new_game()
+
+        self._receiver.run_reader_thread(self._on_remote_message)
+        self._game_loop()

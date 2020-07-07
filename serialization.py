@@ -12,6 +12,8 @@ class DurakSerialized(Durak):
             self.players = [Player(p['index'], p['cards']) for p in j["players"]]
             self.deck = list(map(tuple, j["deck"]))
             self.winner = j["winner"]
+            # в Python ключем словаря может быть кортеж, а в JSON - нет,
+            # поэтому собираем поле из массива пар ключ-значение [ [к1, зн1], [к2, зн2] ]
             self.field = {tuple(ac): tuple(dc) if dc is not None else None for ac, dc in j["field"]}
 
     def serialized(self):
@@ -21,7 +23,7 @@ class DurakSerialized(Durak):
             "attacker_index": self.attacker_index,
             "deck": self.deck,
             "winner": self.winner,
-            "field": list(self.field.items()),
+            "field": list(self.field.items()),  # преобразуем словарь в список пар (ключ, значение)
             "players": [
                 {
                     "index": p.index,

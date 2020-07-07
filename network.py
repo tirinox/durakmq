@@ -68,6 +68,7 @@ class Networking:
                 data, _ = self.recv_json()
                 if data:
                     callback(data)
+        # daemon=True, чтобы не зависал, если выйдет основной поток
         threading.Thread(target=reader_job, daemon=True).start()
 
     def bind(self, to=""):

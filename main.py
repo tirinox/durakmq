@@ -1,24 +1,22 @@
-from render import ConsoleRenderer
-from net_game import DurakNetGame
-from discovery_protocol import DiscoveryProtocol
-from util import rand_id
-
-PORT_NO = 37020
-PORT_NO_AUX = 37021
+from kivy.app import App
+from kivy.uix.widget import Widget
+from kivy.uix.button import Button
+from kivy.core.window import Window
 
 
-def main():
-    my_pid = rand_id()
+Window.size = (540, 960)  # разрешение экрана аля смартфон
 
-    discovery = DiscoveryProtocol(my_pid, port_no=PORT_NO)
-    print('Сканирую локальную сеть...')
-    (remote_addr, _port), remote_pid = discovery.run()
-    del discovery
 
-    renderer = ConsoleRenderer()
-    game = DurakNetGame(renderer, my_pid, remote_pid, remote_addr, [PORT_NO, PORT_NO_AUX])
-    game.start()
+class DurakKivyApp(App):
+    def build(self):
+        self.but = Button()
+        self.but.pos = (100, 100)
+        self.but.size = (200, 200)
+        self.but.text = "Hello, cruel world"
 
+        self.form = Widget()
+        self.form.add_widget(self.but)
+        return self.form
 
 if __name__ == '__main__':
-    main()
+    DurakKivyApp().run()

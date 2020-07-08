@@ -1,1 +1,2 @@
 pytest
+Kivy==1.11.1

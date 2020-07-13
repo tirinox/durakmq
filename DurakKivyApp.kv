@@ -1,0 +1,70 @@
+#:kivy 1.11.1
+#:import SPADES durak.SPADES
+#:import HEARTS durak.HEARTS
+#:import DIAMS durak.DIAMS
+#:import CLUBS durak.CLUBS
+
+<Card@Button>:
+  text: self.suit
+  font_name: 'Arial'
+  color: (1, 0, 0, 1) if self.suit in (HEARTS, DIAMS) else (0, 0, 0, 1)
+  font_size: '40pt'
+  size_hint: .15, .5
+  size_hint_min: 40, 80
+  background_normal: ''
+  background_down: ''
+  background_color: (1, 1, 1, 1)
+  opacity: 1 if self.state == 'normal' else .8
+
+
+  Label:
+    font_size: '30pt'
+    pos: 0, 0
+    size: 100, 100
+    color: (1, 0, 0, 1)
+    text: "5" # self.parent.parent.nominal
+#      color: self.parent.parent.color
+
+
+
+BoxLayout:
+  orientation: 'vertical'
+  padding: 10
+
+  StackLayout:
+    spacing: 10
+    id: 'opp_cards'
+    Card:
+    Card:
+    Card:
+
+  StackLayout:
+    id: 'field'
+
+  StackLayout:
+    spacing: 10
+    id: 'my_cards'
+    Card:
+    Card:
+
+
+
+
+#
+#CardWidget:
+#  size_hint: 0.1, 0.1
+#  text: "Tihiro"
+#
+#
+#  canvas.before:
+#    Color:
+#      rgba: (2/255), (198/255), (201/255), 0.98
+#    Rectangle:
+#      pos: self.pos
+#      size: self.size
+#  Label:
+#    text: '[b]Hello [/b] World'
+#    markup: True
+#    font_size: 44
+#    outline_color: 5, 5, 5, 1
+

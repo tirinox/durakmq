@@ -4,27 +4,19 @@
 #:import DIAMS durak.DIAMS
 #:import CLUBS durak.CLUBS
 
-<Card@Button>:
-  text: self.suit
+<Card>:
+  text: f'{root.suit}\n{root.nominal}\n{root.suit}'
   font_name: 'Arial'
-  color: (1, 0, 0, 1) if self.suit in (HEARTS, DIAMS) else (0, 0, 0, 1)
-  font_size: '40pt'
-  size_hint: .15, .5
-  size_hint_min: 40, 80
+  halign: 'center'
+  color: (0.8, 0, 0, 1) if root.suit in (DIAMS, HEARTS) else (0, 0, 0, 1)
+  font_size: '30pt'
+  width: app.width / 12
+  height: app.width / 8 * 1.6
+  size_hint: None, None
   background_normal: ''
   background_down: ''
   background_color: (1, 1, 1, 1)
-  opacity: 1 if self.state == 'normal' else .8
-
-
-  Label:
-    font_size: '30pt'
-    pos: 0, 0
-    size: 100, 100
-    color: (1, 0, 0, 1)
-    text: "5" # self.parent.parent.nominal
-#      color: self.parent.parent.color
-
+  opacity: 1 if root.state == 'normal' else .8
 
 
 BoxLayout:
@@ -33,19 +25,29 @@ BoxLayout:
 
   StackLayout:
     spacing: 10
-    id: 'opp_cards'
-    Card:
-    Card:
-    Card:
+    id: opp_cards
 
-  StackLayout:
-    id: 'field'
+  BoxLayout:
+    padding: 10
+    direction: 'horizontal'
+    StackLayout:
+      id: field
+    AnchorLayout:
+      size_hint: 0.5, 1
+      anchor_x: 'right'
+      anchor_y: 'center'
+      StackLayout:
+        spacing: 10
+        Card:
+          id: trump_card
+          nominal: '8'
+          suit: DIAMS
+        Card:
+          counter: '28'
 
   StackLayout:
     spacing: 10
-    id: 'my_cards'
-    Card:
-    Card:
+    id: my_cards
 
 
 

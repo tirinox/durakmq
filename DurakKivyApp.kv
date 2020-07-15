@@ -4,6 +4,22 @@
 #:import DIAMS durak.DIAMS
 #:import CLUBS durak.CLUBS
 
+<MyPopup@Popup>:
+  title: ''
+  size_hint: (0.8, 0.3)
+  auto_dismiss: True
+  GridLayout:
+    cols: 1
+    Label:
+      size_hint_y: 0.8
+      id: label
+      font_name: 'Arial'
+      font_size: '20pt'
+    Button:
+      size_hint_y: 0.2
+      text: 'Закрыть'
+      on_press: root.dismiss()
+
 <Card>:
   text: f'{root.suit}\n{root.nominal}\n{root.suit}'
   font_name: 'Arial'

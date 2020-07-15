@@ -4,7 +4,9 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.core.window import Window
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.popup import Popup
 from kivy.properties import StringProperty, BooleanProperty, NumericProperty
+
 from durak import *
 
 
@@ -37,21 +39,43 @@ class Card(Button):
         self.bind(counter=self.set_c)
 
 
+class MyPopup(Popup):
+    @classmethod
+    def show(cls, title, text):
+        p = MyPopup()
+        p.title = title
+        p.ids.label.text = text
+        p.open()
+
+
 class DurakKivyApp(App):
     # fixme: возможно эти свойства уже доступны через API Kivy?
     width = NumericProperty()
     height = NumericProperty()
 
+    def _tap_card(self, card, widget):
+        print(card)
+        self._remove_card_from_hand(card, widget.opened)
+        MyPopup.show('Ура', f'убрали карту {card}')
+
     def _make_card(self, card, opened=True):
         card_widget = Card()
         card_widget.nominal, card_widget.suit = card
         card_widget.opened = opened
+        card_widget.on_press = lambda: self._tap_card(card, card_widget)
         return card_widget
 
+    def _get_container(self, card_widget):
+        return self._my_cards if card_widget.opened else self._opp_cards
+
     def _push_card_to_hand(self, card):
-        to_my_hand = card.opened
-        container = self._my_cards if to_my_hand else self._opp_cards
-        container.add_widget(card)
+        self._get_container(card).add_widget(card)
+
+    def _remove_card_from_hand(self, card, is_my):
+        container = self._my_cards if is_my else self._opp_cards
+        for cw in container.children:
+            if (cw.nominal, cw.suit) == card:
+                cw.parent.remove_widget(cw)
 
     def _set_deck(self, trump, count_left):
         td = self._trump_and_deck
@@ -77,7 +101,6 @@ class DurakKivyApp(App):
             self._push_card_to_hand(self._make_card(deck.pop(), True))
             self._push_card_to_hand(self._make_card(deck.pop(), False))
         self._set_deck(deck.pop(), len(deck))
-
 
 
 if __name__ == '__main__':

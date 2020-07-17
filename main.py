@@ -2,6 +2,7 @@ from kivy.config import Config
 
 from gui.card import Card
 from gui.utils import fast_dist
+from math import sin, cos, pi
 
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '640')
@@ -28,8 +29,27 @@ class DurakFloatApp(App):
 
     texture = ObjectProperty()
 
-    def _attr_to_my_hand(self, i, n):
-        ...
+    def attr_to_my_hand(self, i, n):
+        r = 0.9 * self.width
+        cx, cy = (self.width * 0.5, -0.666 * r)
+        min_ang, max_ang = -30, 30
+        ang = min_ang + (max_ang - min_ang) / (n + 1) * i
+        ang_r = ang / 180 * pi
+        return cx + r * sin(ang_r), cy + r * cos(ang_r), -ang
+
+    def attr_to_opp_hand(self, i, n):
+        r = 0.9 * self.width
+        cx, cy = (self.width * 0.5, self.height + 0.666 * r)
+        min_ang, max_ang = -30, 30
+        ang = min_ang + (max_ang - min_ang) / (n + 1) * i
+        ang_r = ang / 180 * pi
+        return cx + r * sin(ang_r), cy - r * cos(ang_r), ang
+
+    @classmethod
+    def set_animated_pos_attrs(cls, obj, attrs):
+        x, y, r = attrs
+        obj.target_position = x, y
+        obj.target_rotation = r
 
     def update(self, dt):
         df = self.EXP_ATT * dt
@@ -46,28 +66,34 @@ class DurakFloatApp(App):
                 if abs(tr - r) >= 0.1:
                     child.rotation += (tr - r) * df
 
+    def make_cards(self):
+        deck = list(DECK)
+        random.shuffle(deck)
+        my_cards = [deck.pop() for _ in range(CARDS_IN_HAND_MAX)]
+        opp_cards = [deck.pop() for _ in range(CARDS_IN_HAND_MAX)]
+
+        for i, card in enumerate(my_cards, start=1):
+            wcard = Card.make(card)
+            self.set_animated_pos_attrs(wcard, self.attr_to_my_hand(i, len(my_cards)))
+            self.root.add_widget(wcard)
+
+        for i, card in enumerate(opp_cards, start=1):
+            wcard = Card.make(card)
+            self.set_animated_pos_attrs(wcard, self.attr_to_opp_hand(i, len(opp_cards)))
+            self.root.add_widget(wcard)
+
     def on_start(self):
         super().on_start()
 
         self.width, self.height = Window.size
 
-        print(self.root.size)
-
         self.texture = Image(source='assets/bg.jpg').texture
         self.texture.wrap = 'repeat'
         self.texture.uvsize = (1, 1)
 
-        card = Card.make((NOMINALS[2], CLUBS))
-        self.root.add_widget(card)
+        self.make_cards()
 
         Clock.schedule_interval(self.update, 1.0 / 60.0)
-
-        self.card = card  # debug
-        Clock.schedule_interval(self.test_interval, 1.1)
-
-    def test_interval(self, dt):
-        self.card.target_position = (random.uniform(0, self.width), random.uniform(0, self.height))
-        self.card.target_rotation = random.uniform(-45, 45)
 
 
 if __name__ == '__main__':

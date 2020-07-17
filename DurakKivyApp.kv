@@ -39,8 +39,13 @@ BoxLayout:
   orientation: 'vertical'
   padding: 10
 
-  StackLayout:
-    spacing: 10
+  Label:
+    id: status_bar
+    text: ''
+    font_size: '20pt'
+    size_hint: 1, .1
+
+  FloatLayout:
     id: opp_cards
 
   BoxLayout:

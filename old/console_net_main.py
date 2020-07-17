@@ -1,4 +1,11 @@
-from render import GameRenderer
+from old.render import ConsoleRenderer
+from discovery_protocol import DiscoveryProtocol
+from util import rand_id
+
+PORT_NO = 37020
+PORT_NO_AUX = 37021
+
+from old.render import GameRenderer
 from serialization import DurakSerialized
 from network import Networking
 
@@ -176,3 +183,20 @@ class DurakNetGame:
 
         self._receiver.run_reader_thread(self._on_remote_message)
         self._game_loop()
+
+
+def main():
+    my_pid = rand_id()
+
+    discovery = DiscoveryProtocol(my_pid, port_no=PORT_NO)
+    print('Сканирую локальную сеть...')
+    (remote_addr, _port), remote_pid = discovery.run()
+    del discovery
+
+    renderer = ConsoleRenderer()
+    game = DurakNetGame(renderer, my_pid, remote_pid, remote_addr, [PORT_NO, PORT_NO_AUX])
+    game.start()
+
+
+if __name__ == '__main__':
+    main()

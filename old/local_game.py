@@ -1,4 +1,4 @@
-from render import ConsoleRenderer
+from old.render import ConsoleRenderer
 from durak import Durak
 import random
 

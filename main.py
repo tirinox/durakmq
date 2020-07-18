@@ -31,7 +31,7 @@ class DurakFloatApp(App):
 
     def attr_to_my_hand(self, i, n):
         r = 0.9 * self.width
-        cx, cy = (self.width * 0.5, -0.666 * r)
+        cx, cy = (self.width * 0.5, -0.8 * r)
         min_ang, max_ang = -30, 30
         ang = min_ang + (max_ang - min_ang) / (n + 1) * i
         ang_r = ang / 180 * pi
@@ -39,7 +39,7 @@ class DurakFloatApp(App):
 
     def attr_to_opp_hand(self, i, n):
         r = 0.9 * self.width
-        cx, cy = (self.width * 0.5, self.height + 0.666 * r)
+        cx, cy = (self.width * 0.5, self.height + 0.8 * r)
         min_ang, max_ang = -30, 30
         ang = min_ang + (max_ang - min_ang) / (n + 1) * i
         ang_r = ang / 180 * pi
@@ -56,11 +56,15 @@ class DurakFloatApp(App):
         for child in self.root.children:
             if hasattr(child, 'target_position'):
                 x, y = child.pos
+                # компенсируем положение точки, смещая ее из нижнего левого угла в середину виджета
+                x += child.size[0] / 2
+                y += child.size[1] / 2
                 tx, ty = child.target_position
                 if fast_dist(x, y, tx, ty) >= 0.1:
                     x += (tx - x) * df
                     y += (ty - y) * df
-                    child.pos = (x, y)
+                    # возвращаем обратно из середины точку к углу
+                    child.pos = (x - child.size[0] / 2, y - child.size[1] / 2)
             if hasattr(child, 'target_rotation'):
                 tr, r = child.target_rotation, child.rotation
                 if abs(tr - r) >= 0.1:
@@ -78,9 +82,20 @@ class DurakFloatApp(App):
             self.root.add_widget(wcard)
 
         for i, card in enumerate(opp_cards, start=1):
-            wcard = Card.make(card)
+            wcard = Card.make(card, opened=False)
             self.set_animated_pos_attrs(wcard, self.attr_to_opp_hand(i, len(opp_cards)))
             self.root.add_widget(wcard)
+
+        wtrump = Card.make(deck.pop())
+        wtrump.target_position = (self.width * 0.8, self.height / 2)
+        wtrump.target_rotation = 90
+        self.root.add_widget(wtrump)
+
+        wdeck = Card.make(('27', ''))
+        wdeck.target_position = (self.width * 0.9, self.height / 2)
+        self.root.add_widget(wdeck)
+
+
 
     def on_start(self):
         super().on_start()

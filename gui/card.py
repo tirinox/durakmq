@@ -21,13 +21,18 @@ class Card(Button):
             self.text = '?'
             self.color = (0, 0.5, 0, 1)
         else:
-            self.text = f'{self.suit}\n{self.nominal}\n{self.suit}'
+            s, n = self.suit, self.nominal
+            self.text = f'{s}{n}\n\n{n}{s}'
             self.color = (0.8, 0, 0, 1) if self.suit in (DIAMS, HEARTS) else (0, 0, 0, 1)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.target_position = (100, 100)
         self.target_rotation = 0
+
+    def set_animated_targets(self, x, y, ang):
+        self.target_position = x, y
+        self.target_rotation = ang
 
     @classmethod
     def make(cls, card, opened=True):

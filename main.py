@@ -81,10 +81,17 @@ class DurakFloatApp(App):
                 if abs(tr - r) >= 0.1:
                     child.rotation += (tr - r) * df
 
-    def bring_to_front(self, w: Card):
-        parent = w.parent
-        parent.remove_widget(w)
-        parent.add_widget(w)
+
+    def throw_away_card(self, w: Card):
+        if w is not None:
+            w.set_animated_targets(-self.width, self.height * 0.5, 0)
+            w.destroy_card_after_delay(1.0)
+
+    def throw_away_field(self, *_):
+        for c1, c2 in self.field:
+            self.throw_away_card(c1)
+            self.throw_away_card(c2)
+        self.field.clear()
 
     def on_press_card(self, wcard: Card, **kwargs):
         wcard.opened = True
@@ -95,7 +102,7 @@ class DurakFloatApp(App):
             last_c1, last_c2 = self.field[-1]
             if last_c2 is None:
                 self.field[-1] = [last_c1, wcard]
-                self.bring_to_front(wcard)
+                wcard.bring_to_front()
             else:
                 self.field.append([wcard, None])
 
@@ -104,6 +111,10 @@ class DurakFloatApp(App):
             c1.set_animated_targets(*self.attr_to_field(i, n, beneath=True))
             if c2:
                 c2.set_animated_targets(*self.attr_to_field(i, n, beneath=False))
+
+        # debug
+        if len(self.field) == 3 and self.field[-1][1] is not None:
+            Clock.schedule_once(self.throw_away_field, 1.0)
 
     def make_card(self, card, attrs, opened=True, **kwargs):
         wcard = Card.make(card, opened=opened)

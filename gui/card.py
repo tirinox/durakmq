@@ -1,3 +1,4 @@
+from kivy.clock import Clock
 from kivy.uix.button import Button
 from kivy.properties import StringProperty, BooleanProperty, NumericProperty
 from durak import NOMINALS, DIAMS, HEARTS
@@ -33,6 +34,18 @@ class Card(Button):
     def set_animated_targets(self, x, y, ang):
         self.target_position = x, y
         self.target_rotation = ang
+
+    def bring_to_front(self):
+        parent = self.parent
+        parent.remove_widget(self)
+        parent.add_widget(self)
+
+    def destroy_card_after_delay(self, delay):
+        def finisher(*_):
+            if self:
+                self.parent.remove_widget(self)
+
+        Clock.schedule_once(finisher, delay)
 
     @classmethod
     def make(cls, card, opened=True):

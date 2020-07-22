@@ -14,7 +14,7 @@ class Card(Button):
     counter = NumericProperty(-1)
     rotation = NumericProperty(0)
 
-    def update_text(self):
+    def update_text(self, *_):
         if self.counter >= 0:
             self.text = str(int(self.counter))
             self.color = (0, 0, 0, 1)
@@ -30,6 +30,8 @@ class Card(Button):
         super().__init__(**kwargs)
         self.target_position = (100, 100)
         self.target_rotation = 0
+        self.bind(counter=self.update_text)
+        self.bind(opened=self.update_text)
 
     def set_animated_targets(self, x, y, ang):
         self.target_position = x, y

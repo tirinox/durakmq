@@ -4,27 +4,22 @@ from gui.card import Card
 
 
 class GameLayout:
-    def attr_to_my_hand(self, i, n):
+    def attr_to_hand(self, i, n, is_my):
         """
         Положение карт в моей руке (по дуге снизу)
         """
         r = 0.9 * self.width
-        cx, cy = (self.width * 0.5, -0.8 * r)
-        min_ang, max_ang = -30, 30
-        ang = min_ang + (max_ang - min_ang) / (n + 1) * i
-        ang_r = ang / 180 * pi
-        return cx + r * sin(ang_r), cy + r * cos(ang_r), -ang
+        cx = self.width * 0.5
+        cy = -0.8 * r if is_my else self.height + 0.8 * r
 
-    def attr_to_opp_hand(self, i, n):
-        """
-        Положение карт в руке соперника (по дуге сверху)
-        """
-        r = 0.9 * self.width
-        cx, cy = (self.width * 0.5, self.height + 0.8 * r)
-        min_ang, max_ang = -30, 30
-        ang = min_ang + (max_ang - min_ang) / (n + 1) * i
+        d_ang = 10
+        max_ang = min(30, d_ang * n / 2)
+        min_ang = -max_ang
+
+        ang = min_ang + (max_ang - min_ang) / (n + 1) * (i + 1)
         ang_r = ang / 180 * pi
-        return cx + r * sin(ang_r), cy - r * cos(ang_r), ang
+        m = 1 if is_my else -1
+        return cx + r * sin(ang_r), cy + m * r * cos(ang_r), -m * ang
 
     def attr_to_trump(self):
         return self.width * 0.83, self.height / 2, 90
@@ -47,6 +42,11 @@ class GameLayout:
         if w is not None:
             w.set_animated_targets(-self.width, self.height * 0.5, 0)
             w.destroy_card_after_delay(1.0)
+
+    def give_card(self, w: Card, i, n):
+        w.pos = self.attr_to_deck()[:2]
+        w.rotation = 0
+        w.set_animated_targets(*self.attr_to_hand(i, n, w.opened))
 
     def __init__(self, width, height):
         self.width = width

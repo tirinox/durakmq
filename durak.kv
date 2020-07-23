@@ -1,0 +1,36 @@
+#:kivy 1.11.1
+#:import SPADES durak.SPADES
+#:import HEARTS durak.HEARTS
+#:import DIAMS durak.DIAMS
+#:import CLUBS durak.CLUBS
+
+
+<Card>:
+  font_name: 'resources/Arial.ttf'
+  halign: 'center'
+  font_size: '32dp'
+  width: '64dp'
+  height: '120dp'
+  size_hint: None, None
+
+  background_normal: 'resources/rounded_corners.png'
+  background_down: 'resources/rounded_corners.png'
+  border: (24, 24, 24, 24)
+
+  background_color: (1, 1, 1, 1)
+  opacity: 1 if root.state == 'normal' else .8
+
+  canvas.before:
+    PushMatrix
+    Rotate:
+      angle: self.rotation
+      origin: self.center
+  canvas.after:
+    PopMatrix
+
+<MainLayout@FloatLayout>:
+  canvas.before:
+    Rectangle:
+      pos: self.pos
+      size: self.size
+      source: './resources/bg.jpg'

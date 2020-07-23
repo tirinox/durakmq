@@ -1,4 +1,6 @@
 from kivy.config import Config
+from kivy.lang import Builder
+from kivy.uix.floatlayout import FloatLayout
 
 from gui.animation import AnimationSystem
 from gui.card import Card
@@ -18,6 +20,10 @@ import random
 
 PORT_NO = 37020
 PORT_NO_AUX = 37021
+
+
+class MainLayout(FloatLayout):
+    ...
 
 
 class DurakFloatApp(App):
@@ -75,11 +81,15 @@ class DurakFloatApp(App):
         self.update_field_and_hand()
 
     def on_press_card(self, wcard: Card, **kwargs):
+        if self.locked_contorls:
+            return
+
         if wcard in self.my_cards or wcard in self.opp_cards:
             self.put_card_to_field(wcard)
 
         # debug
         if len(self.field) == 3 and self.field[-1][1] is not None:
+            self.locked_contorls = True
             Clock.schedule_once(self.throw_away_field, 1.0)
 
     def make_card(self, card, attrs=(0, 0, 0), opened=True, **kwargs):
@@ -134,23 +144,34 @@ class DurakFloatApp(App):
                     return # дали карту
             # если не получилось дать, то прекращаем давать
             Clock.unschedule(give_one_card)
+            self.locked_contorls = False
+
         Clock.schedule_interval(give_one_card, 0.3)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.texture = Image(source='resources/bg.jpg').texture
+        self.texture.wrap = 'repeat'
+        self.texture.uvsize = (1, 1)
+
+    def build(self):
+        Builder.load_file('durak.kv')
+        return MainLayout()
 
     def on_start(self):
         super().on_start()
 
+        self.locked_contorls = False
+
         self.width, self.height = Window.size
         self.layout = GameLayout(self.width, self.height)
 
-        self.texture = Image(source='assets/bg.jpg').texture
-        self.texture.wrap = 'repeat'
-        self.texture.uvsize = (1, 1)
-
         self.make_cards()
+
+        print(self.root)
 
         self.animator = AnimationSystem(self.root)
         self.animator.run()
-
 
 if __name__ == '__main__':
     DurakFloatApp().run()

@@ -44,8 +44,7 @@ class GameLayout:
             w.destroy_card_after_delay(1.0)
 
     def give_card(self, w: Card, i, n):
-        w.pos = self.attr_to_deck()[:2]
-        w.rotation = 0
+        w.set_immeditate_attr(*self.attr_to_deck())
         w.set_animated_targets(*self.attr_to_hand(i, n, w.opened))
 
     def __init__(self, width, height):

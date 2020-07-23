@@ -34,3 +34,28 @@
       pos: self.pos
       size: self.size
       source: './resources/bg.jpg'
+
+  Label:
+    id: message_label
+    font: 'resources/Arial.ttf'
+    font_size: '20dp'
+    text: 'Сообщение игроку'
+    pos: 0, self.width * 0.25
+    color: 1, 1, 1, 1
+
+
+<MyPopup@Popup>:
+  id: popup
+  pos: 0, 0
+  size_hint: 0.7, 0.3
+  FloatLayout:
+    Label:
+      text: "You pressed the button"
+      size_hint: 0.6, 0.2
+      pos_hint: {"x":0.2, "top":1}
+
+    Button:
+      text: "You pressed the button"
+      size_hint: 0.8, 0.2
+      pos_hint: {"x":0.1, "y":0.1}
+      on_press: popup.dismiss()

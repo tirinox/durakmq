@@ -5,8 +5,8 @@ class MyPopup(Popup):
     @classmethod
     def show(cls, title, text):
         p = MyPopup()
-        p.title = title
-        p.ids.label.text = text
+        # p.title = title
+        # p.ids.label.text = text
         p.open()
 
 

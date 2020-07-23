@@ -5,6 +5,7 @@ from kivy.uix.floatlayout import FloatLayout
 from gui.animation import AnimationSystem
 from gui.card import Card
 from gui.game_layout import GameLayout
+from gui.utils import MyPopup
 
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '640')
@@ -168,7 +169,7 @@ class DurakFloatApp(App):
 
         self.make_cards()
 
-        print(self.root)
+        # MyPopup.show('feff', 'ffeffefe')
 
         self.animator = AnimationSystem(self.root)
         self.animator.run()

@@ -37,6 +37,10 @@ class Card(Button):
         self.target_position = x, y
         self.target_rotation = ang
 
+    def set_immeditate_attr(self, x, y, ang):
+        self.pos = x - self.width / 2, y - self.height / 2
+        self.rotation = ang
+
     def bring_to_front(self):
         parent = self.parent
         parent.remove_widget(self)

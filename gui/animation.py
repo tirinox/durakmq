@@ -1,7 +1,9 @@
 from kivy.clock import Clock
 from kivy.uix.widget import Widget
 
-from gui.utils import fast_dist
+
+def fast_dist(x1, y1, x2, y2):
+    return abs(x1 - x2) + abs(y1 - y2)
 
 
 class AnimationSystem:

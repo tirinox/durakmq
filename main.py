@@ -6,7 +6,6 @@ from gui.animation import AnimationSystem
 from gui.card import Card
 from gui.game_layout import GameLayout
 from gui.gm_label import GameMessageLabel
-from gui.utils import MyPopup
 
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '640')
@@ -16,7 +15,6 @@ from kivy.app import App
 from kivy.core.window import Window
 from kivy.properties import NumericProperty, ObjectProperty
 from durak import *
-from kivy.uix.image import Image
 from kivy.clock import Clock
 import random
 
@@ -152,12 +150,6 @@ class DurakFloatApp(App):
             self.locked_contorls = False
 
         Clock.schedule_interval(give_one_card, 0.3)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.texture = Image(source='resources/bg.jpg').texture
-        self.texture.wrap = 'repeat'
-        self.texture.uvsize = (1, 1)
 
     def build(self):
         Builder.load_file('durak.kv')

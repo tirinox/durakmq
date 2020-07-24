@@ -28,6 +28,15 @@
   canvas.after:
     PopMatrix
 
+<GameMessageLabel>:
+  font_name: 'resources/Arial.ttf'
+  font_size: '22dp'
+  text: ''
+  pos: 0, self.width * 0.25
+  color: 1, 1, 1, 1
+  opacity: 0
+
+
 <MainLayout@FloatLayout>:
   canvas.before:
     Rectangle:
@@ -35,14 +44,11 @@
       size: self.size
       source: './resources/bg.jpg'
 
-  Label:
-    id: message_label
-    font: 'resources/Arial.ttf'
-    font_size: '20dp'
-    text: 'Сообщение игроку'
-    pos: 0, self.width * 0.25
-    color: 1, 1, 1, 1
-
+  GameMessageLabel:
+    id: game_label
+  GameMessageLabel:
+    color: 1, 0.4, 0.4, 1
+    id: error_label
 
 <MyPopup@Popup>:
   id: popup

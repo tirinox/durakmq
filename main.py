@@ -5,6 +5,7 @@ from kivy.uix.floatlayout import FloatLayout
 from gui.animation import AnimationSystem
 from gui.card import Card
 from gui.game_layout import GameLayout
+from gui.gm_label import GameMessageLabel
 from gui.utils import MyPopup
 
 Config.set('graphics', 'width', '480')
@@ -83,7 +84,10 @@ class DurakFloatApp(App):
 
     def on_press_card(self, wcard: Card, **kwargs):
         if self.locked_contorls:
+            self.error_label.update_message('Подождите!', fade_after=2.0)
             return
+
+        self.game_label.update_message(f'{wcard.nominal}, {wcard.suit}', fade_after=2.0)
 
         if wcard in self.my_cards or wcard in self.opp_cards:
             self.put_card_to_field(wcard)
@@ -166,6 +170,9 @@ class DurakFloatApp(App):
 
         self.width, self.height = Window.size
         self.layout = GameLayout(self.width, self.height)
+
+        self.game_label: GameMessageLabel = self.root.ids.game_label
+        self.error_label: GameMessageLabel = self.root.ids.error_label
 
         self.make_cards()
 

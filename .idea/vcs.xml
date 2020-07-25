@@ -4,6 +4,5 @@
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/.buildozer/android/platform/python-for-android" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/buildozer" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/buildozer/.buildozer/android/platform/python-for-android" vcs="Git" />
   </component>
 </project>

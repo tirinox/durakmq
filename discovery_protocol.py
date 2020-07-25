@@ -1,6 +1,8 @@
 import random
 import network
 import logging
+import concurrent.futures as fut
+import threading
 
 
 class DiscoveryProtocol:
@@ -56,6 +58,17 @@ class DiscoveryProtocol:
                     if data['to_pid'] != self._my_pid:
                         continue  # это не нам; игнорировать!
                 return addr, sender
+
+    def run_in_background(self, callback: callable):
+        """
+        Ищет соперника в фоне и вызывает callback
+        :param callback:
+        :return:
+        """
+        def await_with_callback():
+            results = self.run()
+            callback(*results)
+        threading.Thread(target=await_with_callback).start()
 
 
 if __name__ == '__main__':

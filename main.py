@@ -6,6 +6,7 @@ from gui.animation import AnimationSystem
 from gui.card import Card
 from gui.game_layout import GameLayout
 from gui.gm_label import GameMessageLabel
+from util import rand_id
 
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '640')
@@ -17,6 +18,7 @@ from kivy.properties import NumericProperty, ObjectProperty
 from durak import *
 from kivy.clock import Clock
 import random
+import discovery_protocol
 
 PORT_NO = 37020
 PORT_NO_AUX = 37021
@@ -155,6 +157,12 @@ class DurakFloatApp(App):
         Builder.load_file('durak.kv')
         return MainLayout()
 
+    def on_found_peer(self, addr, peer_id):
+        print(f'found peer: {addr}, {peer_id}')
+
+    def scan(self):
+        discovery_protocol.DiscoveryProtocol(self.pid, PORT_NO).run_in_background(self.on_found_peer)
+
     def on_start(self):
         super().on_start()
 
@@ -168,10 +176,12 @@ class DurakFloatApp(App):
 
         self.make_cards()
 
-        # MyPopup.show('feff', 'ffeffefe')
-
         self.animator = AnimationSystem(self.root)
         self.animator.run()
+
+        self.pid = rand_id()
+
+        self.scan()
 
 if __name__ == '__main__':
     DurakFloatApp().run()

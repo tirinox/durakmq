@@ -1,6 +1,8 @@
 import random
 
 # масти
+from enum import Enum
+
 SPADES = '♠'
 HEARTS = '♥'
 DIAMS = '♦'
@@ -68,6 +70,15 @@ class Player:
 
 def rotate(l, n):
     return l[n:] + l[:n]
+
+
+class TurnFinishResult(Enum):
+    CANT_FORCE_TO_TAKE = 0
+    UNBEATEN_CARDS = 1
+    GAME_OVER = 2
+    TOOK_CARDS = 3
+    NORMAL_TURN = 4
+    EMPTY = 5
 
 
 class Durak:
@@ -198,7 +209,7 @@ class Durak:
     def any_unbeaten_cards(self):
         return any(def_card is None for def_card in self.field.values())
 
-    def finish_turn(self):
+    def finish_turn(self) -> TurnFinishResult:
         assert not self.winner
 
         took_cards = False
@@ -219,14 +230,14 @@ class Durak:
             for p in self.players:
                 if not p.cards:  # если у кого-то кончились карты, он победил!
                     self.winner = p.index
-                    return self.GAME_OVER
+                    return TurnFinishResult.GAME_OVER
 
         if took_cards:
-            return self.TOOK_CARDS
+            return TurnFinishResult.TOOK_CARDS
         else:
             # переход хода, если не отбился
             self.attacker_index = self.opponent_player.index
-            return self.NORMAL
+            return TurnFinishResult.NORMAL_TURN
 
     def _take_all_field(self):
         """

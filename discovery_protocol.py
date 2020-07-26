@@ -68,7 +68,7 @@ class DiscoveryProtocol:
         def await_with_callback():
             results = self.run()
             callback(*results)
-        threading.Thread(target=await_with_callback).start()
+        threading.Thread(target=await_with_callback, daemon=True).start()
 
 
 if __name__ == '__main__':

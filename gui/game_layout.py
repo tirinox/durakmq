@@ -43,10 +43,6 @@ class GameLayout:
             w.set_animated_targets(-self.width, self.height * 0.5, 0)
             w.destroy_card_after_delay(1.0)
 
-    def give_card(self, w: Card, i, n):
-        w.set_immeditate_attr(*self.attr_to_deck())
-        w.set_animated_targets(*self.attr_to_hand(i, n, w.opened))
-
     def __init__(self, width, height):
         self.width = width
         self.height = height

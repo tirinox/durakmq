@@ -1,12 +1,14 @@
 from kivy.config import Config
 from kivy.lang import Builder
+from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 
 from gui.animation import AnimationSystem
 from gui.card import Card
 from gui.game_layout import GameLayout
 from gui.gm_label import GameMessageLabel
-from util import rand_id
+from util import rand_id, rand_circle_pos
+from net_game import DurakNetGame
 
 Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '640')
@@ -36,12 +38,9 @@ class DurakFloatApp(App):
     texture = ObjectProperty()
 
     def throw_away_field(self, *_):
-        for c1, c2 in self.field:
-            self.layout.throw_away_card(c1)
-            self.layout.throw_away_card(c2)
+        for c in self.field_card_widgets:
+            self.layout.throw_away_card(c)
         self.field.clear()
-
-        self.give_cards(me_first=True)  # debug
 
     def update_cards_in_hand(self, container, is_my):
         n = len(container)
@@ -96,6 +95,7 @@ class DurakFloatApp(App):
         if len(self.field) == 3 and self.field[-1][1] is not None:
             self.locked_contorls = True
             Clock.schedule_once(self.throw_away_field, 1.0)
+            Clock.schedule_once(lambda *_: self.give_cards(True), 1.0)  # debug
 
     def make_card(self, card, attrs=(0, 0, 0), opened=True, **kwargs):
         wcard = Card.make(card, opened=opened)
@@ -111,15 +111,10 @@ class DurakFloatApp(App):
             self.deck_card.set_animated_targets(1.5 * self.width, 0.5 * self.height, 0)
 
     def make_cards(self):
-        deck = list(DECK)
-        random.shuffle(deck)
-        my_cards = [deck.pop() for _ in range(CARDS_IN_HAND_MAX)]
-        opp_cards = [deck.pop() for _ in range(CARDS_IN_HAND_MAX)]
-
-        self.deck = deck
-        self.field = []
-        self.my_cards = []
-        self.opp_cards = []
+        self.deck = list(DECK)
+        random.shuffle(self.deck)
+        my_cards = [self.deck.pop() for _ in range(CARDS_IN_HAND_MAX)]
+        opp_cards = [self.deck.pop() for _ in range(CARDS_IN_HAND_MAX)]
 
         for i, card in enumerate(my_cards, start=1):
             wcard = self.make_card(card)
@@ -129,24 +124,52 @@ class DurakFloatApp(App):
             wcard = self.make_card(card, opened=False)
             self.opp_cards.append(wcard)
 
+        self.deck = self.deck[:3]
+
         self.update_field_and_hand()
 
-        self.make_card(deck.pop(), self.layout.attr_to_trump())
+        self.trump_card = self.make_card(self.deck.pop(), self.layout.attr_to_trump())
         self.deck_card = self.make_card(('', ''), self.layout.attr_to_deck())
         self.update_deck()
 
+    @property
+    def field_card_widgets(self):
+        return [c for pair in self.field for c in pair if c is not None]
+
+    @property
+    def all_card_widgets(self):
+        return [*self.my_cards, *self.opp_cards, self.trump_card, self.deck_card, *self.field_card_widgets]
+
+    def remove_all_cards_animated(self):
+        for wcard in self.all_card_widgets:
+            if wcard:
+                wcard.set_animated_targets(*rand_circle_pos(), 0)
+                wcard.destroy_card_after_delay(1.0)
+
+        self.field.clear()
+        self.my_cards = []
+        self.opp_cards = []
+
     def give_cards(self, me_first):
         def give_one_card(*_):
-            containers = (self.my_cards, self.opp_cards) if me_first else (self.opp_cards, self.my_cards)
-            for container in containers:
-                # todo: забрать последний козырь, если колодаа кончилась
-                if len(container) < CARDS_IN_HAND_MAX and self.deck:
-                    wcard = self.make_card(self.deck.pop(), opened=(container is self.my_cards))
-                    self.layout.give_card(wcard, len(container) - 1, len(container))
-                    container.append(wcard)
-                    self.update_field_and_hand()
-                    self.update_deck()
-                    return # дали карту
+            hands = (self.my_cards, self.opp_cards) if me_first else (self.opp_cards, self.my_cards)
+            for hand in hands:
+                hand_len = len(hand)
+                if hand_len < CARDS_IN_HAND_MAX:
+                    if self.deck:
+                        wcard = self.make_card(self.deck.pop(), opened=(hand is self.my_cards))
+                        wcard.set_immeditate_attr(*self.layout.attr_to_deck())
+                        hand.append(wcard)
+                        self.update_field_and_hand()
+                        self.update_deck()
+                        return  # дали карту
+                    elif self.trump_card:
+                        # последняя карта - открытый козырь
+                        hand.append(self.trump_card)
+                        self.trump_card = None
+                        self.update_field_and_hand()
+                        return  # дали карту
+
             # если не получилось дать, то прекращаем давать
             Clock.unschedule(give_one_card)
             self.locked_contorls = False
@@ -163,25 +186,52 @@ class DurakFloatApp(App):
     def scan(self):
         discovery_protocol.DiscoveryProtocol(self.pid, PORT_NO).run_in_background(self.on_found_peer)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.deck = []
+        self.field = []
+        self.my_cards = []
+        self.opp_cards = []
+        self.locked_contorls = False
+        self.pid = rand_id()
+
+    def on_finish_button(self, *_):
+        print('finish turn')
+        self.remove_all_cards_animated()
+
+    def toggle_finish_button(self, is_on, text=''):
+        self.finish_button.text = text
+        if is_on:
+            self.finish_button.disabled = False
+            self.finish_button.opacity = 1.0
+        else:
+            self.finish_button.disabled = True
+            self.finish_button.opacity = 0.0
+
     def on_start(self):
         super().on_start()
-
-        self.locked_contorls = False
 
         self.width, self.height = Window.size
         self.layout = GameLayout(self.width, self.height)
 
         self.game_label: GameMessageLabel = self.root.ids.game_label
         self.error_label: GameMessageLabel = self.root.ids.error_label
+        self.finish_button: Button = self.root.ids.finish_turn_button
+
+        self.toggle_finish_button(True, 'test')  # debug
+        # self.toggle_finish_button(False)
 
         self.make_cards()
 
         self.animator = AnimationSystem(self.root)
         self.animator.run()
 
-        self.pid = rand_id()
+        # debug
+        # self.locked_contorls = True
 
-        self.scan()
+        # self.game_label.update_message("Поиск соперника...")
+        # self.scan()
+
 
 if __name__ == '__main__':
     DurakFloatApp().run()

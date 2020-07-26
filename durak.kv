@@ -50,6 +50,20 @@
     color: 1, 0.4, 0.4, 1
     id: error_label
 
+  Button:
+    text: 'Бито!'
+    id: finish_turn_button
+    visible: False
+    background_normal: 'resources/rounded_corners.png'
+    background_down: 'resources/rounded_corners.png'
+    size_hint: (0.2, 0.06)
+    pos_hint: {"center_x":0.5,"center_y":0.32}
+    color: 0, 0, 0, 1
+    opacity: 1 if self.state == 'normal' else .8
+    border: (24, 24, 24, 24)
+    on_press: app.on_finish_button()
+
+
 <MyPopup@Popup>:
   id: popup
   pos: 0, 0

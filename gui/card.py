@@ -48,7 +48,7 @@ class Card(Button):
 
     def destroy_card_after_delay(self, delay):
         def finisher(*_):
-            if self:
+            if self and self.parent:
                 self.parent.remove_widget(self)
 
         Clock.schedule_once(finisher, delay)

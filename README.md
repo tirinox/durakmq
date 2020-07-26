@@ -1,5 +1,8 @@
 # durakmq
-LAN Durak Card Game
+
+Сетевая игра в карты "Дурак". Для GUI использован Kivy.
+
+![](screenshot.jpg)
 
 ## Запуск на Android
 

@@ -158,11 +158,11 @@ class Durak:
         return list(filter(bool, self.field.values()))
 
     @property
-    def current_player(self):
+    def attacking_player(self):
         return self.players[self.attacker_index]
 
     @property
-    def opponent_player(self):
+    def defending_player(self):
         return self.players[(self.attacker_index + 1) % N_PLAYERS]
 
     def attack(self, card):
@@ -171,8 +171,8 @@ class Durak:
         # можно ли добавить эту карту на поле? (по масти или достоинству)
         if not self.can_add_to_field(card):
             return False
-        cur, opp = self.current_player, self.opponent_player
-        cur.take_card(card)  # уберем карту из руки атакующего
+
+        self.attacking_player.take_card(card)  # уберем карту из руки атакующего
         self.field[card] = None  # карта добавлена на поле, пока не бита
         return True
 
@@ -192,11 +192,16 @@ class Durak:
             # еслии можем побить, то кладем ее на поле
             self.field[attacking_card] = defending_card
             # и изымаем из руки защищающегося
-            self.opponent_player.take_card(defending_card)
+            self.defending_player.take_card(defending_card)
             return True
         return False
 
     def defend_variants(self, card):
+        """
+        Варианты, какие карты можно побить
+        :param card: карта, которой бьем
+        :return:
+        """
         unbeaten_cards = [c for c in self.field.keys() if self.field[c] is None]
         return [i for i, att_card in enumerate(unbeaten_cards) if self.can_beat(att_card, card)]
 
@@ -236,7 +241,7 @@ class Durak:
             return TurnFinishResult.TOOK_CARDS
         else:
             # переход хода, если не отбился
-            self.attacker_index = self.opponent_player.index
+            self.attacker_index = self.defending_player.index
             return TurnFinishResult.NORMAL_TURN
 
     def _take_all_field(self):
@@ -244,5 +249,5 @@ class Durak:
         Соперник берет все катры со стола себе.
         """
         cards = self.attacking_cards + self.defending_cards
-        self.opponent_player.add_cards(cards)
+        self.defending_player.add_cards(cards)
         self.field = {}

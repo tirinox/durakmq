@@ -63,13 +63,18 @@ class Networking:
         Запускает отдельный поток, чтобы получать данные из сокета
         :param callback: функция, которая вызывается, если получены данные
         """
+        self.read_running = True
+
         def reader_job():
-            while True:
+            while self.read_running:
                 data, _ = self.recv_json()
                 if data:
                     callback(data)
+
         # daemon=True, чтобы не зависал, если выйдет основной поток
-        threading.Thread(target=reader_job, daemon=True).start()
+        thread = threading.Thread(target=reader_job, daemon=True)
+        thread.start()
+        return thread
 
     def bind(self, to=""):
         """

@@ -75,7 +75,7 @@ class DurakNetGame:
     def _handle_attack(self, parts):
         g = self._game
         index = int(parts[1]) - 1
-        card = g.current_player.cards[index]
+        card = g.attacking_player.cards[index]
         if not g.attack(card):
             print('ОШИБКА! Вы не можете ходить этой картой!')
             return False
@@ -85,7 +85,7 @@ class DurakNetGame:
     def _handle_defence(self, parts):
         g = self._game
         index = int(parts[1]) - 1
-        new_card = g.opponent_player.cards[index]
+        new_card = g.defending_player.cards[index]
         if g.field:
             variants = g.defend_variants(new_card)
 

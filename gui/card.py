@@ -46,6 +46,10 @@ class Card(Button):
         parent.remove_widget(self)
         parent.add_widget(self)
 
+    @property
+    def as_tuple(self):
+        return self.nominal, self.suit
+
     def destroy_card_after_delay(self, delay):
         def finisher(*_):
             if self and self.parent:

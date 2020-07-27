@@ -30,12 +30,12 @@ def local_game():
                 print(f'Ход окончен: {r}')
             elif command == 'a':
                 index = int(parts[1]) - 1
-                card = g.current_player[index]
+                card = g.attacking_player[index]
                 if not g.attack(card):
                     print('Вы не можете ходить с этой карты!')
             elif command == 'd':
                 index = int(parts[1]) - 1
-                new_card = g.opponent_player[index]
+                new_card = g.defending_player[index]
 
                 # варианты защиты выбранной картой
                 variants = g.defend_variants(new_card)

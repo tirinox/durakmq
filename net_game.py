@@ -5,7 +5,7 @@ from network import Networking
 
 class DurakNetGame:
     def __init__(self, my_id, remote_id, remote_addr, ports):
-        self._game = DurakSerialized()  # геймплей
+        self.state = DurakSerialized()  # геймплей
 
         self._my_id = int(my_id)
         self._remote_id = int(remote_id)
@@ -18,6 +18,7 @@ class DurakNetGame:
         me_first = self._my_id < self._remote_id
         # мой индекс 0 если я первый, и 1 иначе. у соперника наоборот
         self._my_index = 0 if me_first else 1
+        self._opp_index = 1 if me_first else 0
 
         # две сетевых примочки на разны портах
         network1 = Networking(port_no=ports[0])
@@ -29,10 +30,13 @@ class DurakNetGame:
 
         self._sender = network2 if me_first else network1
 
+        self.on_state_updated = lambda _: ...
+        self.on_opponent_quit = lambda: ...
+
     def _send_game_state(self):
         self._sender.send_json({
             'action': 'state',
-            'state': self._game.serialized()
+            'state': self.state.serialized()
         }, self._remote_addr)
 
     def _send_quit(self):
@@ -40,76 +44,68 @@ class DurakNetGame:
             'action': 'quit'
         }, self._remote_addr)
 
-    def _handle_finish_turn(self, my_turn) -> TurnFinishResult:
-        g = self._game
+    def finish_turn(self, my_turn) -> TurnFinishResult:
+        g = self.state
         if g.field:
             if my_turn and g.any_unbeaten_cards:
                 return TurnFinishResult.CANT_FORCE_TO_TAKE  # print('Не можете вынудить соперника взять карты!')
             elif not my_turn and not g.any_unbeaten_cards:
                 return TurnFinishResult.UNBEATEN_CARDS  # print('Только атакующий может сказать "Бито!"')
             else:
-                return g.finish_turn()
+                result = g.finish_turn()
+                self._send_game_state()
+                return result
         else:
             return TurnFinishResult.EMPTY
 
-    def _handle_attack(self, parts):
-        g = self._game
-        index = int(parts[1]) - 1
-        card = g.current_player.cards[index]
-        if not g.attack(card):
-            print('ОШИБКА! Вы не можете ходить этой картой!')
+    def attack(self, card):
+        if not self.state.attack(card):
             return False
         else:
             return True
 
-    def _handle_defence(self, parts):
-        g = self._game
-        index = int(parts[1]) - 1
-        new_card = g.opponent_player.cards[index]
+    def defend(self, my_card, field_card):
+        g = self.state
         if g.field:
-            variants = g.defend_variants(new_card)
-
-            print(f'variants {variants} - {new_card}')
-
-            if len(variants) == 1:
-                def_index = variants[0]
-            elif len(variants) >= 2:
-                max_pos = len(g.field)
-                def_index = int(input(f'Какую позицию отбить {new_card} (1-{max_pos})? ')) - 1
-            else:
-                print('Вам придется взять карты!')
-                return False
-
-            old_card = list(g.field.keys())[def_index]
-            if not g.defend(old_card, new_card):
-                print('ОШИБКА! Нельзя так отбиться!')
-            else:
-                return True
+            assert my_card in self.state.defending_player.cards
+            assert field_card in self.state.field.keys()
+            return g.defend(my_card, field_card)
         else:
-            print('Пока нечего отбивать!')
-            return False
+            return False  # 'Пока нечего отбивать!'
 
     def _new_game(self):
         # игрок с индексом 0 создает игру!
-        self._game = DurakSerialized()
+        self.state = DurakSerialized()
 
         # и отсылает ее сопернику
         self._send_game_state()
-        # self._renderer.render_game(self._game, self._my_index)
+        self.on_state_updated(self._game)
 
     def _on_remote_message(self, data):
         action = data['action']
         if action == 'state':
             self._game = DurakSerialized(data['state'])  # обновить остояние
             print('Пришел ход от соперника!')
-            # self._renderer.render_game(self._game, self._my_index)
+            self.on_state_updated(self._game)
         elif action == 'quit':
             print('Соперник вышел!')
-            exit(0)
+            self.on_opponent_quit()
 
     def start(self):
         if self._my_index == 0:
             # игрок с индексом 0 создает игру!
             self._new_game()
 
+        # поток слушающий сообщений от другого игрока
         self._receiver.run_reader_thread(self._on_remote_message)
+
+    def stop(self):
+        self._receiver.read_running = False
+
+    @property
+    def my_cards(self):
+        return self.state.players[self._my_index].cards
+
+    @property
+    def opp_cards(self):
+        return self.state.players[self._opp_index].cards

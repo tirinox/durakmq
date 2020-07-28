@@ -34,11 +34,12 @@ class Player:
         Колода уменьшится
         :param deck: список карт колоды
         """
-        lack = max(0, CARDS_IN_HAND_MAX - len(self.cards))
+        lack = max(0, CARDS_IN_HAND_MAX - len(self.cards))  # сколько не хватает
         n = min(len(deck), lack)
-        self.add_cards(deck[:n])
+        new_cards = deck[:n]
+        self.add_cards(new_cards)
         del deck[:n]
-        return self
+        return new_cards
 
     def sort_hand(self):
         """
@@ -81,6 +82,12 @@ class TurnFinishResult(Enum):
     EMPTY = 5
 
 
+class UpdateAction(Enum):
+    FINISH_TURN = 'finish_turn'
+    ATTACK = 'attack'
+    DEFEND = 'defend'
+
+
 class Durak:
     def __init__(self, rng: random.Random = None):
         self.attacker_index = 0  # индекс атакующего игрока
@@ -91,8 +98,9 @@ class Durak:
         self.rng.shuffle(self.deck)  # мешаем карты в копии колоды
 
         # создаем игроков и раздаем им по 6 карт из перемешанной колоды
-        self.players = [Player(i, []).take_cards_from_deck(self.deck)
-                        for i in range(N_PLAYERS)]
+        self.players = [Player(i, []) for i in range(N_PLAYERS)]
+        for player in self.players:
+            player.take_cards_from_deck(self.deck)
 
         # козырь - карта сверху
         self.trump = self.deck[0][1]
@@ -104,6 +112,8 @@ class Durak:
 
         self.winner = None  # индекс победителя
 
+        self.last_update = {}  # последние обновление
+
     def card_match(self, card1, card2):
         if card1 is None or card2 is None:
             return False
@@ -111,12 +121,12 @@ class Durak:
         n2, _ = card2
         return n1 == n2
 
-    def can_beat(self, card1, card2):
+    def can_beat(self, att_card, def_card):
         """
-        Бьет ли card1 карту card2
+        Бьет ли att_card карту def_card
         """
-        nom1, suit1 = card1
-        nom2, suit2 = card2
+        nom1, suit1 = att_card
+        nom2, suit2 = def_card
 
         # преобразуем строку-достоинство в численные характеристики
         nom1 = NAME_TO_VALUE[nom1]
@@ -132,6 +142,9 @@ class Durak:
             return False
 
     def can_add_to_field(self, card):
+        if not self.defending_player.cards:  # нельзя подкинуть, если у противника кончились карты!
+            return False
+
         if not self.field:
             # на пустое поле можно ходить любой картой
             return True
@@ -142,6 +155,17 @@ class Durak:
                 return True
 
         return False
+
+    @property
+    def impossible_to_beat(self):
+        """
+        Проверяет можно ли вообще обиться в такой ситуации
+        """
+        for unbeaten_card in self.unbeaten_cards:
+            can_beat = any(self.can_beat(my_card, unbeaten_card) for my_card in self.defending_player.cards)
+            if not can_beat:
+                return False
+        return True
 
     @property
     def attacking_cards(self):
@@ -158,12 +182,42 @@ class Durak:
         return list(filter(bool, self.field.values()))
 
     @property
+    def unbeaten_cards(self):
+        return [c for c in self.field.keys() if self.field[c] is None]
+
+    @property
     def attacking_player(self):
         return self.players[self.attacker_index]
 
     @property
     def defending_player(self):
         return self.players[(self.attacker_index + 1) % N_PLAYERS]
+
+    def defend_variants(self, card):
+        """
+        Варианты, какие карты можно побить
+        :param card: карта, которой бьем
+        :return:
+        """
+        return [i for i, att_card in enumerate(self.unbeaten_cards) if self.can_beat(att_card, card)]
+
+    def _take_all_field(self):
+        """
+        Соперник берет все катры со стола себе.
+        """
+        cards = self.attacking_cards + self.defending_cards
+        self.defending_player.add_cards(cards)
+        self.field = {}
+        self.last_update['take_cards'] = {
+            'cards': cards,
+            'player': self.defending_player.index
+        }
+
+    @property
+    def any_unbeaten_cards(self):
+        return len(self.unbeaten_cards)
+
+    # ---- ДЕЙСТВИЯ -----
 
     def attack(self, card):
         assert not self.winner  # игра не должна быть окончена!
@@ -174,6 +228,13 @@ class Durak:
 
         self.attacking_player.take_card(card)  # уберем карту из руки атакующего
         self.field[card] = None  # карта добавлена на поле, пока не бита
+
+        self.last_update = {
+            'action': UpdateAction.ATTACK,
+            'card': card,
+            'player': self.attacker_index
+        }
+
         return True
 
     def defend(self, attacking_card, defending_card):
@@ -193,29 +254,23 @@ class Durak:
             self.field[attacking_card] = defending_card
             # и изымаем из руки защищающегося
             self.defending_player.take_card(defending_card)
+
+            self.last_update = {
+                'action': UpdateAction.DEFEND,
+                'defending_card': defending_card,
+                'attacking_card': attacking_card,
+                'player': self.defending_player.index
+            }
+
             return True
         return False
 
-    def defend_variants(self, card):
-        """
-        Варианты, какие карты можно побить
-        :param card: карта, которой бьем
-        :return:
-        """
-        unbeaten_cards = [c for c in self.field.keys() if self.field[c] is None]
-        return [i for i, att_card in enumerate(unbeaten_cards) if self.can_beat(att_card, card)]
-
-    # константы результатов хода
-    NORMAL = 'normal'
-    TOOK_CARDS = 'took_cards'
-    GAME_OVER = 'game_over'
-
-    @property
-    def any_unbeaten_cards(self):
-        return any(def_card is None for def_card in self.field.values())
-
     def finish_turn(self) -> TurnFinishResult:
         assert not self.winner
+
+        self.last_update = {
+            'action': UpdateAction.FINISH_TURN
+        }
 
         took_cards = False
         if self.any_unbeaten_cards:
@@ -225,16 +280,21 @@ class Durak:
         else:
             # бито! очищаем поле (отдельного списка для бито нет, просто удаляем карты)
             self.field = {}
+            self.last_update['clear_field'] = True
 
         # очередность взятия карт из колоды определяется индексом атакующего (можно сдвигать на 1, или нет)
+        take_cards = {}
         for p in rotate(self.players, self.attacker_index):
-            p.take_cards_from_deck(self.deck)
+            cards = p.take_cards_from_deck(self.deck)
+            take_cards[p.index] = cards
+        self.last_update['take_cards'] = take_cards
 
         # колода опустела?
         if not self.deck:
             for p in self.players:
                 if not p.cards:  # если у кого-то кончились карты, он победил!
                     self.winner = p.index
+                    self.last_update['winner'] = self.winner
                     return TurnFinishResult.GAME_OVER
 
         if took_cards:
@@ -242,12 +302,5 @@ class Durak:
         else:
             # переход хода, если не отбился
             self.attacker_index = self.defending_player.index
+            self.last_update['turn_change'] = self.attacker_index
             return TurnFinishResult.NORMAL_TURN
-
-    def _take_all_field(self):
-        """
-        Соперник берет все катры со стола себе.
-        """
-        cards = self.attacking_cards + self.defending_cards
-        self.defending_player.add_cards(cards)
-        self.field = {}

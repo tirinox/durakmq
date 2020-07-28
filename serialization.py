@@ -15,6 +15,7 @@ class DurakSerialized(Durak):
             # в Python ключем словаря может быть кортеж, а в JSON - нет,
             # поэтому собираем поле из массива пар ключ-значение [ [к1, зн1], [к2, зн2] ]
             self.field = {tuple(ac): tuple(dc) if dc is not None else None for ac, dc in j["field"]}
+            self.last_update = j["last_update"]
 
     def serialized(self):
         # сериализация
@@ -29,6 +30,7 @@ class DurakSerialized(Durak):
                     "index": p.index,
                     "cards": p.cards
                 } for p in self.players
-            ]
+            ],
+            "last_update": self.last_update
         }
         return j

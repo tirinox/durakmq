@@ -34,6 +34,7 @@ class DurakNetGame:
         self.on_opponent_quit = lambda: ...
 
     def _send_game_state(self):
+        self.on_state_updated(self._game)
         self._sender.send_json({
             'action': 'state',
             'state': self.state.serialized()
@@ -59,17 +60,26 @@ class DurakNetGame:
             return TurnFinishResult.EMPTY
 
     def attack(self, card):
-        if not self.state.attack(card):
-            return False
-        else:
-            return True
+        assert self.is_my_turn
+        result = self.state.attack(card)
+        if result:
+            self._send_game_state()
+        return result
 
     def defend(self, my_card, field_card):
+        assert not self.is_my_turn
         g = self.state
         if g.field:
+            # если передали номер карты на поле, то преобразуем его в саму карту
+            if isinstance(field_card, int):
+                field_card = list(g.field.keys())[field_card]
+
             assert my_card in self.state.defending_player.cards
             assert field_card in self.state.field.keys()
-            return g.defend(my_card, field_card)
+            result = g.defend(my_card, field_card)
+            if result:
+                self._send_game_state()
+            return result
         else:
             return False  # 'Пока нечего отбивать!'
 
@@ -79,17 +89,14 @@ class DurakNetGame:
 
         # и отсылает ее сопернику
         self._send_game_state()
-        self.on_state_updated(self._game)
 
     def _on_remote_message(self, data):
         action = data['action']
         if action == 'state':
             self._game = DurakSerialized(data['state'])  # обновить остояние
-            print('Пришел ход от соперника!')
-            self.on_state_updated(self._game)
+            self.on_state_updated(self._game)  # 'Пришел ход от соперника!'
         elif action == 'quit':
-            print('Соперник вышел!')
-            self.on_opponent_quit()
+            self.on_opponent_quit()  # 'Соперник вышел!'
 
     def start(self):
         if self._my_index == 0:
@@ -100,6 +107,7 @@ class DurakNetGame:
         self._receiver.run_reader_thread(self._on_remote_message)
 
     def stop(self):
+        self._send_quit()
         self._receiver.read_running = False
 
     @property
@@ -109,3 +117,15 @@ class DurakNetGame:
     @property
     def opp_cards(self):
         return self.state.players[self._opp_index].cards
+
+    @property
+    def is_my_turn(self):
+        return self.state.attacker_index == self._my_index
+
+    ME = 'me'
+    OPPONENT = 'opponent'
+
+    @property
+    def winner(self):
+        if self.state.winner is not None:
+            return self.ME if self._my_index == self.state.winner else self.OPPONENT

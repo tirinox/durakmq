@@ -19,7 +19,7 @@ from kivy.core.window import Window
 from kivy.properties import NumericProperty, ObjectProperty
 from durak import *
 from kivy.clock import Clock
-import discovery_protocol
+from discovery_protocol import DiscoveryProtocol
 
 from itertools import zip_longest
 
@@ -58,7 +58,10 @@ class DurakFloatApp(App):
         self.update_cards_in_hand(self.my_cards, is_my=True)
         self.update_cards_in_hand(self.opp_cards, is_my=False)
 
-    def put_card_to_field(self, wcard: Card):
+    def put_card_to_field(self, wcard: Card, on_card=None):
+        if not wcard:
+            return
+
         # убрать карту из списка карт (моих или чужих)
         container = self.my_cards if wcard.opened else self.opp_cards
         container.remove(wcard)
@@ -66,18 +69,14 @@ class DurakFloatApp(App):
         # открыть карту
         wcard.opened = True
 
-        if not self.field:
-            # если это первая карта на поле
-            self.field = [(wcard, None)]
+        if on_card is None:
+            self.field.append([(wcard, None)])
         else:
-            last_c1, last_c2 = self.field[-1]
-            if last_c2 is None:
-                # если не занято место сверху
-                self.field[-1] = [last_c1, wcard]
-                wcard.bring_to_front()
-            else:
-                # новая пара
-                self.field.append([wcard, None])
+            def_index = [i for i, (c1, _) in enumerate(self.field) if c1.as_tuple == on_card][0]
+            c1, c2 = self.field[def_index]
+            assert c2 is None
+            self.field[def_index] = (c1, wcard)
+            wcard.bring_to_front()
 
         # обновить атрибуты всех карт на поле и в руках
         self.update_field_and_hand()
@@ -108,7 +107,6 @@ class DurakFloatApp(App):
                     self.error_label.update_message('Вы не можете так побить!', fade_after=3.0)
                 self.def_card = None
 
-
         # if wcard in self.my_cards or wcard in self.opp_cards:
         #     self.put_card_to_field(wcard)
         # debug
@@ -118,7 +116,13 @@ class DurakFloatApp(App):
         #     Clock.schedule_once(lambda *_: self.give_cards(True), 1.0)  # debug
 
     def on_finish_button(self, *_):
-        ...
+        if self.locked_controls:
+            return
+
+
+    def on_disconnect_button(self, *_):
+        self.reset()
+        self.disconnect_button.visible = False
 
     def make_card(self, card, attrs=(0, 0, 0), opened=True, **kwargs):
         wcard = Card.make(card, opened=opened)
@@ -192,6 +196,11 @@ class DurakFloatApp(App):
 
         Clock.schedule_interval(give_one_card, 0.3)
 
+    def search_card_widget(self, card):
+        for wcard in self.all_card_widgets:
+            if wcard.as_tuple == card:
+                return wcard
+
     def on_game_state_update(self, state: Durak):
         # синхорнизировать состояние игры и GUI
         ...
@@ -206,10 +215,23 @@ class DurakFloatApp(App):
             else:
                 self.error_label.update_message('Вы проиграли!')
             self.reset()
+        else:
+            up = state.last_update
+            action = up['action']
+            if action == UpdateAction.ATTACK:
+                card = up['card']
+                self.put_card_to_field(self.search_card_widget(card))
+            elif action == UpdateAction.DEFEND:
+                att_card = up['attacking_card']
+                def_card = up['defending_card']
+                self.put_card_to_field(self.search_card_widget(def_card), att_card)
+
+
 
     def reset(self):
-        self.game.stop()  # остановить поток чтения и забыть игру
-        self.game = None
+        if self.game:
+            self.game.stop()  # остановить поток чтения и забыть игру
+            self.game = None
         self.game_init = False
         self.locked_controls = True  # заблокировать клики по картам
         self.remove_all_cards_animated()  # убрать все карты с поля
@@ -224,6 +246,8 @@ class DurakFloatApp(App):
         self.reset()
 
     def on_found_peer(self, addr, peer_id):
+        self.discovery = None
+
         # соперник найден, создаем новую игру с ним по сети
         self.game = DurakNetGame(self.my_pid, peer_id, addr, [PORT_NO, PORT_NO_AUX])
         self.game.on_state_updated = self.on_game_state_update
@@ -235,7 +259,10 @@ class DurakFloatApp(App):
         Clock.schedule_once(lambda *_: self.game_label.update_message('Ваш ход!'), 3.0)
 
     def scan(self, *_):
-        discovery_protocol.DiscoveryProtocol(self.my_pid, PORT_NO).run_in_background(self.on_found_peer)
+        # начать сканирование, если еще не начато
+        if not self.discovery:
+            self.discovery = DiscoveryProtocol(self.my_pid, PORT_NO)
+            self.discovery.run_in_background(self.on_found_peer)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -246,7 +273,11 @@ class DurakFloatApp(App):
         self.locked_controls = False
         self.my_pid = rand_id()
         self.def_card = None
+        self.trump_card = None
+        self.deck_card = None
+        self.game: DurakNetGame = None
         self.game_init = False
+        self.discovery = None
 
     def build(self):
         Builder.load_file('durak.kv')
@@ -271,7 +302,9 @@ class DurakFloatApp(App):
         self.game_label: GameMessageLabel = self.root.ids.game_label
         self.error_label: GameMessageLabel = self.root.ids.error_label
         self.finish_button: Button = self.root.ids.finish_turn_button
+        self.disconnect_button: Button = self.root.ids.disconnect_button
         self.toggle_finish_button(False)
+        self.disconnect_button.visible = True
 
         self.animator = AnimationSystem(self.root)
         self.animator.run()

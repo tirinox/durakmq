@@ -36,6 +36,15 @@
   color: 1, 1, 1, 1
   opacity: 0
 
+<GameButton@Button>:
+  text: ''
+  visible: False
+  background_normal: 'resources/rounded_corners.png'
+  background_down: 'resources/rounded_corners.png'
+  size_hint: (0.3, 0.06)
+  color: 0, 0, 0, 1
+  opacity: 1 if self.state == 'normal' else .8
+  border: (24, 24, 24, 24)
 
 <MainLayout@FloatLayout>:
   canvas.before:
@@ -50,18 +59,17 @@
     color: 1, 0.4, 0.4, 1
     id: error_label
 
-  Button:
+  GameButton:
     text: 'Бито!'
     id: finish_turn_button
-    visible: False
-    background_normal: 'resources/rounded_corners.png'
-    background_down: 'resources/rounded_corners.png'
-    size_hint: (0.2, 0.06)
-    pos_hint: {"center_x":0.5,"center_y":0.32}
-    color: 0, 0, 0, 1
-    opacity: 1 if self.state == 'normal' else .8
-    border: (24, 24, 24, 24)
+    pos_hint: {"center_x":0.33,"center_y":0.32}
     on_press: app.on_finish_button()
+
+  GameButton:
+    text: 'Отключиться!'
+    id: disconnect_button
+    pos_hint: {"center_x":0.66,"center_y":0.32}
+    on_press: app.on_disconnect_button()
 
 
 <MyPopup@Popup>:

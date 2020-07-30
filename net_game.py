@@ -34,7 +34,7 @@ class DurakNetGame:
         self.on_opponent_quit = lambda: ...
 
     def _send_game_state(self):
-        self.on_state_updated(self._game)
+        self.on_state_updated(self.state)
         self._sender.send_json({
             'action': 'state',
             'state': self.state.serialized()
@@ -93,8 +93,8 @@ class DurakNetGame:
     def _on_remote_message(self, data):
         action = data['action']
         if action == 'state':
-            self._game = DurakSerialized(data['state'])  # обновить остояние
-            self.on_state_updated(self._game)  # 'Пришел ход от соперника!'
+            self.state = DurakSerialized(data['state'])  # обновить остояние
+            self.on_state_updated(self.state)  # 'Пришел ход от соперника!'
         elif action == 'quit':
             self.on_opponent_quit()  # 'Соперник вышел!'
 

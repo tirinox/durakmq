@@ -103,7 +103,7 @@ class Durak:
             player.take_cards_from_deck(self.deck)
 
         # козырь - карта сверху
-        self.trump = self.deck[0][1]
+        self.trump = self.deck[0]
         # кладем козырь под низ вращая список по кругу на 1 назад
         self.deck = rotate(self.deck, -1)
 
@@ -121,6 +121,10 @@ class Durak:
         n2, _ = card2
         return n1 == n2
 
+    @property
+    def trump_suit(self):
+        return self.trump[1]
+
     def can_beat(self, att_card, def_card):
         """
         Бьет ли att_card карту def_card
@@ -132,9 +136,9 @@ class Durak:
         nom1 = NAME_TO_VALUE[nom1]
         nom2 = NAME_TO_VALUE[nom2]
 
-        if suit2 == self.trump:
+        if suit2 == self.trump_suit:
             # если козырь, то бьет любой некозырь или козырь младше
-            return suit1 != self.trump or nom2 > nom1
+            return suit1 != self.trump_suit or nom2 > nom1
         elif suit1 == suit2:
             # иначе должны совпадать масти и номинал второй карты старше первой
             return nom2 > nom1

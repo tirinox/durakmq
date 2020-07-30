@@ -202,13 +202,12 @@ class DurakFloatApp(App):
                 return wcard
 
     def on_game_state_update(self, state: Durak):
+        print('on_game_state_update')
         # синхорнизировать состояние игры и GUI
-        ...
-        """
-        1. карты в бито с поля
-        2. дать карту из колоды в руку
-        3. поместить карту из руки на поле а) атака б) побить
-        """
+        if not self.game_init:
+            self.game_init = True
+            self.make_cards()
+
         if self.game.winner is not None:
             if self.game.winner == self.game.ME:
                 self.game_label.update_message('Вы победили!')
@@ -217,7 +216,7 @@ class DurakFloatApp(App):
             self.reset()
         else:
             up = state.last_update
-            action = up['action']
+            action = up.get('action')
             if action == UpdateAction.ATTACK:
                 card = up['card']
                 self.put_card_to_field(self.search_card_widget(card))
@@ -225,8 +224,6 @@ class DurakFloatApp(App):
                 att_card = up['attacking_card']
                 def_card = up['defending_card']
                 self.put_card_to_field(self.search_card_widget(def_card), att_card)
-
-
 
     def reset(self):
         if self.game:
@@ -246,14 +243,18 @@ class DurakFloatApp(App):
         self.reset()
 
     def on_found_peer(self, addr, peer_id):
+        print(f'Найден соперник {peer_id}@{addr}')
         self.discovery = None
 
         # соперник найден, создаем новую игру с ним по сети
-        self.game = DurakNetGame(self.my_pid, peer_id, addr, [PORT_NO, PORT_NO_AUX])
+        self.game = DurakNetGame(self.my_pid, peer_id, addr[0], [PORT_NO, PORT_NO_AUX])
         self.game.on_state_updated = self.on_game_state_update
         self.game.on_opponent_quit = self.on_opponent_quit
+        self.game.start()
 
         self.locked_controls = False
+
+        self.disconnect_button.visible = True
 
         self.game_label.update_message('Соперник найден!', fade_after=2.0)
         Clock.schedule_once(lambda *_: self.game_label.update_message('Ваш ход!'), 3.0)
@@ -304,7 +305,7 @@ class DurakFloatApp(App):
         self.finish_button: Button = self.root.ids.finish_turn_button
         self.disconnect_button: Button = self.root.ids.disconnect_button
         self.toggle_finish_button(False)
-        self.disconnect_button.visible = True
+        self.disconnect_button.visible = False
 
         self.animator = AnimationSystem(self.root)
         self.animator.run()

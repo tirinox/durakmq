@@ -16,6 +16,7 @@ class GameMessageLabel(Label):
         super().__init__(**kwargs)
 
     def update_message(self, new_message, fade_after=-1):
+        print(f'Message: {new_message!r}')
         if not new_message:
             self.fade_out()
         else:

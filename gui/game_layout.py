@@ -4,9 +4,11 @@ from gui.card import Card
 
 
 class GameLayout:
-    def attr_to_hand(self, i, n, is_my):
+    def pos_of_hand(self, i, n, is_my):
         """
-        Положение карт в моей руке (по дуге снизу)
+        Положение карт
+            is_my = True в моей руке (по дуге снизу)
+            is_my = False в руке соперника (по дуге сверху)
         """
         r = 0.9 * self.width
         cx = self.width * 0.5
@@ -21,13 +23,13 @@ class GameLayout:
         m = 1 if is_my else -1
         return cx + r * sin(ang_r), cy + m * r * cos(ang_r), -m * ang
 
-    def attr_to_trump(self):
+    def pos_of_trump(self):
         return self.width * 0.83, self.height / 2, 90
 
-    def attr_to_deck(self):
+    def pos_of_deck(self):
         return self.width * 0.93, self.height / 2, 0
 
-    def attr_to_field(self, i, n, beneath):
+    def pos_of_field_cell(self, i, n, beneath):
         x_step = self.width * 0.15
         x_start = self.width * 0.12
         width = x_start + x_step * n

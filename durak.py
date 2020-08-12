@@ -82,7 +82,7 @@ class TurnFinishResult(Enum):
     EMPTY = 5
 
 
-class UpdateAction(Enum):
+class UpdateAction:
     FINISH_TURN = 'finish_turn'
     ATTACK = 'attack'
     DEFEND = 'defend'

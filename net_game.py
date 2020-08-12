@@ -1,6 +1,7 @@
 from serialization import DurakSerialized
 from durak import TurnFinishResult
 from network import Networking
+from threading import Timer
 
 
 class DurakNetGame:
@@ -76,7 +77,7 @@ class DurakNetGame:
 
             assert my_card in self.state.defending_player.cards
             assert field_card in self.state.field.keys()
-            result = g.defend(my_card, field_card)
+            result = g.defend(field_card, my_card)
             if result:
                 self._send_game_state()
             return result
@@ -87,8 +88,8 @@ class DurakNetGame:
         # игрок с индексом 0 создает игру!
         self.state = DurakSerialized()
 
-        # и отсылает ее сопернику
-        self._send_game_state()
+        # и отсылает ее сопернику через небольшой промежуток времени, чтобы тот успел начать слушать
+        Timer(0.5, self._send_game_state).start()
 
     def _on_remote_message(self, data):
         action = data['action']
@@ -99,12 +100,12 @@ class DurakNetGame:
             self.on_opponent_quit()  # 'Соперник вышел!'
 
     def start(self):
+        # поток слушающий сообщений от другого игрока
+        self._receiver.run_reader_thread(self._on_remote_message)
+
         if self._my_index == 0:
             # игрок с индексом 0 создает игру!
             self._new_game()
-
-        # поток слушающий сообщений от другого игрока
-        self._receiver.run_reader_thread(self._on_remote_message)
 
     def stop(self):
         self._send_quit()

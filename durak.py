@@ -201,9 +201,9 @@ class Durak:
         """
         Варианты, какие карты можно побить
         :param card: карта, которой бьем
-        :return:
+        :return: карты, которые можно отбить
         """
-        return [i for i, att_card in enumerate(self.unbeaten_cards) if self.can_beat(att_card, card)]
+        return [att_card for att_card in self.unbeaten_cards if self.can_beat(att_card, card)]
 
     def _take_all_field(self):
         """

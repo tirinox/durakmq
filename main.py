@@ -124,6 +124,7 @@ class DurakFloatApp(App):
     def on_finish_button(self, *_):
         if self.locked_controls:
             return
+        # todo!
 
     def on_disconnect_button(self, *_):
         self.reset()
@@ -176,6 +177,7 @@ class DurakFloatApp(App):
         self.opp_cards = []
 
     def give_cards(self, me_first):
+        # todo!
         def give_one_card(*_):
             hands = (self.my_cards, self.opp_cards) if me_first else (self.opp_cards, self.my_cards)
             for hand in hands:
@@ -232,6 +234,8 @@ class DurakFloatApp(App):
                 att_card = up['attacking_card']
                 def_card = up['defending_card']
                 self.put_card_to_field(self.search_card_widget(def_card), att_card)
+
+            self.toggle_button(self.finish_button, True, "Бито" if self.game.is_my_turn else "Взять карты!")
 
     def reset(self):
         if self.game:

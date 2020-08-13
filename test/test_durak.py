@@ -1,4 +1,4 @@
-from durak import Durak
+from durak import Durak, ACE
 
 
 def test_1():
@@ -14,3 +14,9 @@ def test_1():
     assert d.defending_player.n_cards == 7
     assert d.attacking_player.n_cards == 6
     assert len(d.deck) == 36 - 13
+
+
+def test_trump_not_ace():
+    for _ in range(10000):
+        d = Durak()
+        assert d.trump[0] != ACE

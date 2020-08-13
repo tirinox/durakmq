@@ -9,7 +9,8 @@ DIAMS = '♦'
 CLUBS = '♣'
 
 # достоинтсва карт
-NOMINALS = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+ACE = 'A'
+NOMINALS = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', ACE]
 
 # поиск индекса по достоинству
 NAME_TO_VALUE = {n: i for i, n in enumerate(NOMINALS)}
@@ -89,6 +90,9 @@ class UpdateAction:
 
 
 class Durak:
+    def get_trump(self):
+        return next(card for card in self.deck if card[0] != ACE)
+
     def __init__(self, rng: random.Random = None):
         self.attacker_index = 0  # индекс атакующего игрока
 
@@ -102,10 +106,11 @@ class Durak:
         for player in self.players:
             player.take_cards_from_deck(self.deck)
 
-        # козырь - карта сверху
-        self.trump = self.deck[0]
-        # кладем козырь под низ вращая список по кругу на 1 назад
-        self.deck = rotate(self.deck, -1)
+        # козырь - карта сверху (не туз)
+        self.trump = next(card for card in self.deck if card[0] != ACE)
+        # подсунем под низ
+        self.deck.remove(self.trump)
+        self.deck.insert(0, self.trump)
 
         # игровое поле: ключ - атакующая карта, значения - защищающаяся или None
         self.field = {}
@@ -287,11 +292,11 @@ class Durak:
             self.last_update['clear_field'] = True
 
         # очередность взятия карт из колоды определяется индексом атакующего (можно сдвигать на 1, или нет)
-        take_cards = {}
+        take_cards = []
         for p in rotate(self.players, self.attacker_index):
             cards = p.take_cards_from_deck(self.deck)
-            take_cards[p.index] = cards
-        self.last_update['take_cards'] = take_cards
+            take_cards += [(p.index, card) for card in cards]
+        self.last_update['from_deck'] = take_cards
 
         # колода опустела?
         if not self.deck:

@@ -46,13 +46,11 @@ class DurakNetGame:
             'action': 'quit'
         }, self._remote_addr)
 
-    def finish_turn(self, my_turn) -> TurnFinishResult:
+    def finish_turn(self) -> TurnFinishResult:
         g = self.state
         if g.field:
-            if my_turn and g.any_unbeaten_cards:
+            if self.is_my_turn and g.any_unbeaten_cards:
                 return TurnFinishResult.CANT_FORCE_TO_TAKE  # print('Не можете вынудить соперника взять карты!')
-            elif not my_turn and not g.any_unbeaten_cards:
-                return TurnFinishResult.UNBEATEN_CARDS  # print('Только атакующий может сказать "Бито!"')
             else:
                 result = g.finish_turn()
                 self._send_game_state()
@@ -122,6 +120,9 @@ class DurakNetGame:
     @property
     def is_my_turn(self):
         return self.state.attacker_index == self._my_index
+
+    def is_me(self, index):
+        return index == self._my_index
 
     ME = 'me'
     OPPONENT = 'opponent'

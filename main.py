@@ -198,7 +198,8 @@ class DurakFloatApp(App):
 
     def display_whose_turn(self, delay=3.0):
         def _inner(*_):
-            self.game_label.update_message('Ваш ход!' if self.game.is_my_turn else 'Ход соперника!')
+            if self.game:
+                self.game_label.update_message('Ваш ход!' if self.game.is_my_turn else 'Ход соперника!')
 
         Clock.schedule_once(_inner, delay)
 

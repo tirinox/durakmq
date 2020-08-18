@@ -10,8 +10,8 @@ CLUBS = '♣'
 
 # достоинтсва карт
 ACE = 'A'
-# NOMINALS = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', ACE]
-NOMINALS = ['10', 'J', 'Q', 'K', ACE]
+NOMINALS = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', ACE]
+# NOMINALS = ['10', 'J', 'Q', 'K', ACE]
 
 # поиск индекса по достоинству
 NAME_TO_VALUE = {n: i for i, n in enumerate(NOMINALS)}

@@ -51,6 +51,8 @@ class DurakNetGame:
         if g.field:
             if self.is_my_turn and g.any_unbeaten_cards:
                 return TurnFinishResult.CANT_FORCE_TO_TAKE  # print('Не можете вынудить соперника взять карты!')
+            elif not self.is_my_turn and not g.any_unbeaten_cards:
+                return TurnFinishResult.CANT_TAKE_NOW
             else:
                 result = g.finish_turn()
                 self._send_game_state()
@@ -131,3 +133,7 @@ class DurakNetGame:
     def winner(self):
         if self.state.winner is not None:
             return self.ME if self._my_index == self.state.winner else self.OPPONENT
+
+    @property
+    def my_index(self):
+        return self._my_index

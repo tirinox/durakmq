@@ -10,7 +10,8 @@ CLUBS = '♣'
 
 # достоинтсва карт
 ACE = 'A'
-NOMINALS = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', ACE]
+# NOMINALS = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', ACE]
+NOMINALS = ['10', 'J', 'Q', 'K', ACE]
 
 # поиск индекса по достоинству
 NAME_TO_VALUE = {n: i for i, n in enumerate(NOMINALS)}
@@ -37,7 +38,7 @@ class Player:
         """
         lack = max(0, CARDS_IN_HAND_MAX - len(self.cards))  # сколько не хватает
         n = min(len(deck), lack)
-        new_cards = deck[:n]
+        new_cards = deck[:n]  # первые n карт сверхку колоды
         self.add_cards(new_cards)
         del deck[:n]
         return new_cards
@@ -81,6 +82,7 @@ class TurnFinishResult(Enum):
     TOOK_CARDS = 3
     NORMAL_TURN = 4
     EMPTY = 5
+    CANT_TAKE_NOW = 6
 
 
 class UpdateAction:
@@ -100,6 +102,7 @@ class Durak:
 
         self.deck = list(DECK)  # копируем колоду
         self.rng.shuffle(self.deck)  # мешаем карты в копии колоды
+        # !!! верх колоды = индекс 0, низ колоды - последний в списке
 
         # создаем игроков и раздаем им по 6 карт из перемешанной колоды
         self.players = [Player(i, []) for i in range(N_PLAYERS)]
@@ -110,7 +113,7 @@ class Durak:
         self.trump = next(card for card in self.deck if card[0] != ACE)
         # подсунем под низ
         self.deck.remove(self.trump)
-        self.deck.insert(0, self.trump)
+        self.deck.append(self.trump)  # самый последний элемент - низ колоды
 
         # игровое поле: ключ - атакующая карта, значения - защищающаяся или None
         self.field = {}

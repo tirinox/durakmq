@@ -20,3 +20,4 @@ def test_trump_not_ace():
     for _ in range(10000):
         d = Durak()
         assert d.trump[0] != ACE
+        assert d.trump == d.deck[-1]

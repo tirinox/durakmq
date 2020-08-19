@@ -13,13 +13,20 @@
 ```pip install Cython
 git clone https://github.com/kivy/buildozer.git
 cd buildozer
-sudo python setup.py install```
+sudo python setup.py install
+```
 
 Подключи устройство и разреши отладку по USB
 
 Установка и запуск приложения на Android устройстве:
 
 ```buildozer android debug deploy run```
+
+Если что-то не работает, то следует изучить логи на устройстве. Для этого есть команда:
+
+```adb logcat -T 1 python:D "*:S"```
+
+Она фильтрует с устройства только те логи, которые относятся к Kivy.
 
 ## ToDo
 

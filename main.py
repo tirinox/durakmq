@@ -63,11 +63,17 @@ class DurakFloatApp(App):
                     elif len(variants) == 1:
                         self.game.defend(card, variants[0])
                     else:
-                        self.def_card = card
-                elif wcard in self.layout.field and self.def_card:
-                    if not self.game.defend(self.def_card, wcard):
+                        if self.selected_card is not None:
+                            self.selected_card.selected = False
+                        wcard.selected = True
+                        self.selected_card = wcard
+                        self.show_error('Выберите карту, чтобы побить.')
+                elif card in self.game.state.unbeaten_cards and self.selected_card is not None:
+                    if self.game.defend(self.selected_card.as_tuple, card):
+                        self.selected_card.selected = False
+                        self.selected_card = None
+                    else:
                         self.show_error('Вы не можете так побить!')
-                    self.def_card = None
             else:
                 self.show_error('Подождите, пока вас атакуют...')
 
@@ -81,7 +87,6 @@ class DurakFloatApp(App):
 
     def on_disconnect_button(self, *_):
         self.reset()
-        self.disconnect_button.visible = False
 
     def player_take_cards(self, is_me):
         hand = self.layout.my_cards if is_me else self.layout.opp_cards
@@ -104,11 +109,21 @@ class DurakFloatApp(App):
             self.game.stop()  # остановить поток чтения и забыть игру
             self.game = None
         self.game_init = False
+        self.selected_card = None
         self.locked_controls = True  # заблокировать клики по картам
         self.layout.remove_all_cards_animated()  # убрать все карты с поля
         self.toggle_buttons()
 
         Clock.schedule_once(self.scan, 3.0)  # начать новый поиск через некоторое время
+
+    def show_results(self):
+        if self.game.winner == self.game.ME:
+            self.game_label.update_message('Вы победили!')
+        else:
+            self.error_label.update_message('Вы проиграли!')
+            self.game_label.update_message('')
+        self.locked_controls = True
+        self.toggle_buttons()
 
     @mainthread
     def on_game_state_update(self, *_):
@@ -118,11 +133,7 @@ class DurakFloatApp(App):
             self.layout.make_cards(self.game.my_cards, self.game.opp_cards, self.game.state.trump, self.game.state.deck)
 
         if self.game.winner is not None:
-            if self.game.winner == self.game.ME:
-                self.game_label.update_message('Вы победили!')
-            else:
-                self.error_label.update_message('Вы проиграли!')
-            self.reset()
+            self.show_results()
         else:
             up = self.game.state.last_update
 
@@ -191,6 +202,7 @@ class DurakFloatApp(App):
         self.game: DurakNetGame = None
         self.game_init = False
         self.discovery = None
+        self.selected_card = None
 
     def build(self):
         Builder.load_file('durak.kv')
@@ -212,12 +224,12 @@ class DurakFloatApp(App):
 
     @mainthread
     def toggle_buttons(self):
-        game_active = self.game is not None
-        self.toggle_button(self.disconnect_button, game_active)
 
         finish_active = False
         finish_text = ""
+        disconnect_text = ""
 
+        game_active = self.game is not None
         if game_active:
             can_take = self.game.state.any_unbeaten_cards and not self.game.is_my_turn
             can_finish = self.game.state.field and not self.game.state.any_unbeaten_cards and self.game.is_my_turn
@@ -225,7 +237,13 @@ class DurakFloatApp(App):
             finish_active = can_take or can_finish
             finish_text = "Бито" if self.game.is_my_turn else "Взять карты!"
 
+            if self.game.winner:
+                disconnect_text = 'Новая игра!'
+            else:
+                disconnect_text = "Отключиться"
+
         self.toggle_button(self.finish_button, finish_active, finish_text)
+        self.toggle_button(self.disconnect_button, game_active, disconnect_text)
 
     def on_start(self):
         super().on_start()

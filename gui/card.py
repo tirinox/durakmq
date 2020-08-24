@@ -11,6 +11,7 @@ class Card(Button):
     nominal = StringProperty()
     suit = StringProperty()
     opened = BooleanProperty(True)
+    selected = BooleanProperty(False)
     counter = NumericProperty(-1)
     rotation = NumericProperty(0)
 

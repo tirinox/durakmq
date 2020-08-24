@@ -11,7 +11,7 @@ CLUBS = '♣'
 # достоинтсва карт
 ACE = 'A'
 NOMINALS = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', ACE]
-# NOMINALS = ['10', 'J', 'Q', 'K', ACE]
+NOMINALS = ['J', 'Q', 'K', ACE]
 
 # поиск индекса по достоинству
 NAME_TO_VALUE = {n: i for i, n in enumerate(NOMINALS)}
@@ -232,7 +232,11 @@ class Durak:
     # ---- ДЕЙСТВИЯ -----
 
     def attack(self, card):
-        assert not self.winner  # игра не должна быть окончена!
+        if self.winner:  # игра не должна быть окончена!
+            return False
+
+        if card not in self.attacking_player.cards:
+            return False
 
         # можно ли добавить эту карту на поле? (по масти или достоинству)
         if not self.can_add_to_field(card):

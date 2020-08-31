@@ -10,9 +10,13 @@ from util import rand_circle_pos
 class GameLayout:
     def pos_of_hand(self, i, n, is_my):
         """
-        Положение карт
-            is_my = True в моей руке (по дуге снизу)
-            is_my = False в руке соперника (по дуге сверху)
+        Положение карты в руке
+        :param i: номер карты с 0 слева направо
+        :param n: количество карт в руке
+        :param is_my: True в моей руке (по дуге снизу), False в руке соперника (по дуге сверху) 
+        :return: x, y, поровот
+        """"""
+        
         """
         r = 0.9 * self.width
         cx = self.width * 0.5
@@ -28,12 +32,28 @@ class GameLayout:
         return cx + r * sin(ang_r), cy + m * r * cos(ang_r), -m * ang
 
     def pos_of_trump(self):
+        """
+        Положение козыря
+        :return: x, y, поворот
+        """
         return self.width * 0.83, self.height / 2, 90
 
     def pos_of_deck(self):
+        """
+        Положение колоды
+        :return: x, y, поворот
+        """
         return self.width * 0.93, self.height / 2, 0
 
     def pos_of_field_cell(self, i, n, beneath):
+        """
+        Положение карты на поле
+        :param i: номер стопки слева направо 
+        :param n: количество стопок
+        :param beneath: под низом ли?
+        :return: x, y, поворот 
+        """"""
+        """
         x_step = self.width * 0.15
         x_start = self.width * 0.12
         width = x_start + x_step * n

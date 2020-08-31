@@ -64,7 +64,6 @@ class Card(Button):
         card_widget.nominal, card_widget.suit = card
         card_widget.opened = opened
         card_widget.update_text()
-        # card_widget.on_press = lambda: self._tap_card(card, card_widget)
         return card_widget
 
 

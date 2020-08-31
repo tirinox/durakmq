@@ -7,11 +7,12 @@ SPADES = '♠'
 HEARTS = '♥'
 DIAMS = '♦'
 CLUBS = '♣'
+SUITS = [SPADES, HEARTS, DIAMS, CLUBS]
 
 # достоинтсва карт
 ACE = 'A'
 NOMINALS = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', ACE]
-NOMINALS = ['J', 'Q', 'K', ACE]
+NOMINALS_SHORT = ['J', 'Q', 'K', ACE]
 
 # поиск индекса по достоинству
 NAME_TO_VALUE = {n: i for i, n in enumerate(NOMINALS)}
@@ -22,7 +23,8 @@ CARDS_IN_HAND_MAX = 6
 N_PLAYERS = 2
 
 # эталонная колода (каждая масть по каждому номиналу) - 36 карт
-DECK = [(nom, suit) for nom in NOMINALS for suit in [SPADES, HEARTS, DIAMS, CLUBS]]
+DECK = [(nom, suit) for nom in NOMINALS for suit in SUITS]
+DECK_SHORT = [(nom, suit) for nom in NOMINALS_SHORT for suit in SUITS]
 
 
 class Player:
@@ -95,12 +97,12 @@ class Durak:
     def get_trump(self):
         return next(card for card in self.deck if card[0] != ACE)
 
-    def __init__(self, rng: random.Random = None):
+    def __init__(self, rng: random.Random = None, deck=None):
         self.attacker_index = 0  # индекс атакующего игрока
 
         self.rng = rng or random.Random()  # генератор случайных чисел
 
-        self.deck = list(DECK)  # копируем колоду
+        self.deck = deck if deck is not None else list(DECK)  # копируем колоду
         self.rng.shuffle(self.deck)  # мешаем карты в копии колоды
         # !!! верх колоды = индекс 0, низ колоды - последний в списке
 
@@ -169,9 +171,9 @@ class Durak:
         return False
 
     @property
-    def impossible_to_beat(self):
+    def possible_to_beat(self):
         """
-        Проверяет можно ли вообще обиться в такой ситуации
+        Проверяет можно ли вообще обить что-то в такой ситуации
         """
         for unbeaten_card in self.unbeaten_cards:
             can_beat = any(self.can_beat(my_card, unbeaten_card) for my_card in self.defending_player.cards)

@@ -117,11 +117,15 @@ class DurakFloatApp(App):
         Clock.schedule_once(self.scan, 3.0)  # начать новый поиск через некоторое время
 
     def show_results(self):
-        if self.game.winner == self.game.ME:
-            self.game_label.update_message('Вы победили!')
-        else:
-            self.error_label.update_message('Вы проиграли!')
-            self.game_label.update_message('')
+        """
+        Показывает результат игры
+        """
+        if self.game:
+            if self.game.winner == self.game.ME:
+                self.game_label.update_message('Вы победили!')
+            else:
+                self.error_label.update_message('Вы проиграли!')
+                self.game_label.update_message('')
         self.locked_controls = True
         self.toggle_buttons()
 
@@ -160,7 +164,11 @@ class DurakFloatApp(App):
             self.update_hands()
 
             self.toggle_buttons()
+
             self.display_whose_turn(delay=0)
+
+            # if not self.game.is_my_turn and not self.game.state.possible_to_beat:
+            #     self.show_error("Вам придется взять карты!")
 
     @mainthread
     def on_opponent_quit(self):
@@ -210,7 +218,7 @@ class DurakFloatApp(App):
 
     def display_whose_turn(self, delay=3.0):
         def _inner(*_):
-            if self.game:
+            if self.game and self.game.winner is None:
                 self.game_label.update_message('Ваш ход!' if self.game.is_my_turn else 'Ход соперника!')
 
         Clock.schedule_once(_inner, delay)

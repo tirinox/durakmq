@@ -72,20 +72,3 @@
     id: disconnect_button
     pos_hint: {"center_x":0.66,"center_y":0.32}
     on_press: app.on_disconnect_button()
-
-
-<MyPopup@Popup>:
-  id: popup
-  pos: 0, 0
-  size_hint: 0.7, 0.3
-  FloatLayout:
-    Label:
-      text: "You pressed the button"
-      size_hint: 0.6, 0.2
-      pos_hint: {"x":0.2, "top":1}
-
-    Button:
-      text: "You pressed the button"
-      size_hint: 0.8, 0.2
-      pos_hint: {"x":0.1, "y":0.1}
-      on_press: popup.dismiss()

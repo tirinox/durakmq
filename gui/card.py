@@ -17,12 +17,15 @@ class Card(Button):
 
     def update_text(self, *_):
         if self.counter >= 0:
+            # это колода. текст = кол-во карт
             self.text = str(int(self.counter))
             self.color = (0, 0, 0, 1)
         elif not self.opened:
+            # карта закрыта (рука соперника)
             self.text = '?'
             self.color = (0, 0.5, 0, 1)
         else:
+            # карта открыта
             s, n = self.suit, self.nominal
             self.text = f'{s}{n}\n\n{n}{s}'
             self.color = (0.8, 0, 0, 1) if self.suit in (DIAMS, HEARTS) else (0, 0, 0, 1)

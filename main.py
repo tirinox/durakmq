@@ -3,12 +3,7 @@ from kivy.lang import Builder
 from kivy.uix.button import Button
 from kivy.uix.floatlayout import FloatLayout
 
-from gui.animation import AnimationSystem
-from gui.card import Card
-from gui.game_layout import GameLayout
-from gui.gm_label import GameMessageLabel
 from util import rand_id, rand_circle_pos, debug_start
-from net_game import DurakNetGame
 
 debug_start()
 
@@ -16,12 +11,19 @@ Config.set('graphics', 'width', '480')
 Config.set('graphics', 'height', '640')
 Config.set('graphics', 'resizable', False)
 
+from gui.animation import AnimationSystem
+from gui.card import Card
+from gui.game_layout import GameLayout
+from gui.gm_label import GameMessageLabel
+
 from kivy.app import App
 from kivy.core.window import Window
 from kivy.properties import NumericProperty, ObjectProperty
 from durak import *
 from kivy.clock import Clock, mainthread
+
 from discovery_protocol import DiscoveryProtocol
+from net_game import DurakNetGame
 
 
 PORT_NO = 37020
@@ -43,6 +45,12 @@ class DurakFloatApp(App):
         self.error_label.update_message(message, fade_after=3.0)
 
     def on_press_card(self, wcard: Card, *_):
+        """
+        Обработчки нажатия на любую карту
+        :param wcard: виджет карты
+        :param _:
+        :return:
+        """
         if self.locked_controls:
             self.show_error('Подождите!')
             return

@@ -15,8 +15,6 @@ class GameLayout:
         :param n: количество карт в руке
         :param is_my: True в моей руке (по дуге снизу), False в руке соперника (по дуге сверху) 
         :return: x, y, поровот
-        """"""
-        
         """
         r = 0.9 * self.width
         cx = self.width * 0.5
@@ -154,7 +152,7 @@ class GameLayout:
         for i, card in enumerate(real_cards):
             wcard = self.card2widget.get(card, None)
             if wcard:
-                wcard.bring_to_front()
+                wcard.bring_to_front()  # чтобы каждая следующая была поверх предыдущей
                 wcard.set_animated_targets(*self.pos_of_hand(i, n, is_my))
 
     def update_field(self):
